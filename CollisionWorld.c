@@ -124,6 +124,59 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
   }
 }
 
+void build_quadtree(CollisionWorld* collision_world) {
+  quad_tree tree = quad_tree_new();
+  tree->num_lines = new_lines->num_lines;
+
+  if (new_lines->size <= N)
+    return;
+
+  line_list* quad1  = line_list_new();
+  line_list* quad2  = line_list_new();
+  line_list* quad3  = line_list_new();
+  line_list* quad4  = line_list_new();
+  line_list* parent = line_list_new();
+
+  quad_type t;
+  Line* ptr = collision_world->lines; 
+  Line* end = ptr + collision_world->numOfLines;
+  for(; ptr < end; ptr++){
+    t = get_quad_type(tree, *ptr);
+    switch (t){
+      case Q1:
+	insert_line(quad1, line_list_new(ptr));
+	break;
+      case Q2:
+	insert_line(quad2, line_list_new(ptr));
+	break;
+      case Q3:
+	insert_line(quad3, line_list_new(ptr));
+	break;
+      case Q4:
+	insert_line(quad4, line_list_new(ptr));
+	break;
+      case MUL:
+	insert_line(parent, line_list_new(ptr));
+	break;
+      default:
+	return 0;
+    }
+  }
+  tree->quad1 = quad_tree_new();
+  tree->quad2 = quad_tree_new();
+  tree->quad3 = quad_tree_new();
+  tree->quad4 = quad_tree_new();
+  quadtree_insert_line_list(tree, parent);
+  quadtree_insert_lines(tree->quad1, quad1);
+  quadtree_insert_lines(tree->quad2, quad2);
+  quadtree_insert_lines(tree->quad3, quad3);
+  quadtree_insert_lines(tree->quad4, quad4);
+}
+
+void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
+	
+}
+/*
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   IntersectionEventList intersectionEventList = IntersectionEventList_make();
 
@@ -180,6 +233,7 @@ void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
 
   IntersectionEventList_deleteNodes(&intersectionEventList);
 }
+*/
 
 unsigned int CollisionWorld_getNumLineWallCollisions(
     CollisionWorld* collisionWorld) {
