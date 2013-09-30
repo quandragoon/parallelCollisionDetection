@@ -31,6 +31,7 @@
 #include "./IntersectionDetection.h"
 #include "./IntersectionEventList.h"
 #include "./Line.h"
+#include "./Quadtree.h"
 
 CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
   assert(capacity > 0);
@@ -125,10 +126,10 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
 }
 
 void build_quadtree(CollisionWorld* collision_world) {
-  quad_tree tree = quad_tree_new();
-  tree->num_lines = new_lines->num_lines;
+  quad_tree* tree = quad_tree_new(BOX_XMIN, BOX_XMAX, BOX_YMIN, BOX_YMAX);
+  tree->num_lines = collision_world->numOfLines;
 
-  if (new_lines->size <= N)
+  if (tree->num_lines <= N)
     return;
 
   line_list* quad1  = line_list_new();
@@ -141,25 +142,26 @@ void build_quadtree(CollisionWorld* collision_world) {
   Line* ptr = collision_world->lines; 
   Line* end = ptr + collision_world->numOfLines;
   for(; ptr < end; ptr++){
-    t = get_quad_type(tree, *ptr);
+    line_node* ptr_node = line_node_new(ptr);
+    t = get_quad_type(tree, ptr_node);
     switch (t){
       case Q1:
-	insert_line(quad1, line_list_new(ptr));
+	insert_line(quad1, line_node_new(ptr));
 	break;
       case Q2:
-	insert_line(quad2, line_list_new(ptr));
+	insert_line(quad2, line_node_new(ptr));
 	break;
       case Q3:
-	insert_line(quad3, line_list_new(ptr));
+	insert_line(quad3, line_node_new(ptr));
 	break;
       case Q4:
-	insert_line(quad4, line_list_new(ptr));
+	insert_line(quad4, line_node_new(ptr));
 	break;
       case MUL:
-	insert_line(parent, line_list_new(ptr));
+	insert_line(parent, line_node_new(ptr));
 	break;
       default:
-	return 0;
+	return;
     }
   }
   double X_MID = (BOX_XMAX + BOX_XMIN) / 2.0;

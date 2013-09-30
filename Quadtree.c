@@ -1,17 +1,21 @@
-enum quad_type {Q1 = 1, Q2 = 2, Q3 = 3, Q4 = 4, MUL = 0};
+#include "./Quadtree.h"
+#include "./Line.h"
+#include "./Vec.h"
+#include "assert.h"
+#include <stdlib.h>
 
-struct line_node {
+/*struct line_node {
   struct line_node* next;
   Line line;
-};
+};*/
 
 line_node* line_node_new(Line* line){
-  line_node *const new_line = (line_node *const)malloc(sizeof(line_node));
+  line_node *const new_line = (line_node *const)malloc(sizeof(struct line_node));
   new_line->line = *line;
-  return line_node;  
+  return new_line;  
 }
 
-struct line_list {
+/*struct line_list {
   size_t num_lines;
   struct line_node* head;
   struct line_node* tail;
@@ -27,9 +31,9 @@ struct quad_tree {
 typedef struct quad_tree quad_tree;
 typedef struct line_node line_node;
 typedef struct line_list line_list;
-
+*/
 line_list *line_list_new() {
-  line_list *const new_list = (line_list *const)malloc(sizeof(line_list));
+  line_list *const new_list = (line_list *const)malloc(sizeof(struct line_list));
   new_list->head = NULL;
   new_list->tail = NULL;
   new_list->num_lines = 0;
@@ -55,14 +59,14 @@ void insert_line(line_list* lines, line_node* new_line) {
     lines->tail->next = new_line;
     lines->tail = new_line;
   }
-  lines->size++;
+  lines->num_lines++;
   lines->tail->next = NULL;
 }
 
 quad_type get_quad_type(quad_tree* tree, line_node* node) {
   Line line = node->line;
-  Vec p1 = line->p1;
-  Vec p2 = line->p2;
+  Vec p1 = line.p1;
+  Vec p2 = line.p2;
 
   double xmin = tree->xmin;
   double xmax = tree->xmax;
@@ -71,14 +75,14 @@ quad_type get_quad_type(quad_tree* tree, line_node* node) {
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
 
-  assert(p1->x > xmin && p1->x < xmax && p1->y > ymin && p1->y < ymax);
-  assert(p2->x > xmin && p2->x < xmax && p2->y > ymin && p2->y < ymax);
+  assert(p1.x > xmin && p1.x < xmax && p1.y > ymin && p1.y < ymax);
+  assert(p2.x > xmin && p2.x < xmax && p2.y > ymin && p2.y < ymax);
 
-  if (!(((p1->x - xmid)*(p2->x - xmid) > 0) && ((p1->y - ymid)*(p2->y - ymid)))) {
+  if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid)))) {
     return MUL;
   }
-  int xid = (p1->x - xmid > 0) ? 1 : 0;
-  int yid = (p1->y - ymid > 0) ? 1 : 0;
+  int xid = (p1.x - xmid > 0) ? 1 : 0;
+  int yid = (p1.y - ymid > 0) ? 1 : 0;
   int quad = 2 * yid + xid + 1;
   return (quad_type) quad;
 }
@@ -90,7 +94,7 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
   double ymax = tree->ymax;
   double ymin = tree->ymin;
 
-  if (new_lines->size <= N)
+  if (new_lines->num_lines <= N)
     return;
 
   line_list* quad1  = line_list_new();
@@ -102,7 +106,7 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
   line_node* cur = new_lines->head;
   quad_type t;
   while (cur->next != NULL){
-    t = get_quad_type(tree, cur->line);
+    t = get_quad_type(tree, cur);
     switch (t){
       case Q1:
 	insert_line(quad1, cur);
@@ -120,7 +124,7 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
 	insert_line(parent, cur);
 	break;
       default:
-	return 0;
+	return;
     }
   }
   double xmid = (xmin + xmax) / 2.0;
