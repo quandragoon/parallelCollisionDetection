@@ -162,10 +162,12 @@ void build_quadtree(CollisionWorld* collision_world) {
 	return 0;
     }
   }
-  tree->quad1 = quad_tree_new();
-  tree->quad2 = quad_tree_new();
-  tree->quad3 = quad_tree_new();
-  tree->quad4 = quad_tree_new();
+  double X_MID = (BOX_XMAX + BOX_XMIN) / 2.0;
+  double Y_MID = (BOX_YMAX + BOX_YMIN) / 2.0;
+  tree->quad1 = quad_tree_new(BOX_XMIN, X_MID, BOX_YMIN, Y_MID);
+  tree->quad2 = quad_tree_new(X_MID, BOX_XMAX, BOX_YMIN, Y_MID);
+  tree->quad3 = quad_tree_new(BOX_XMIN, X_MID, Y_MID, BOX_YMAX);
+  tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
   quadtree_insert_line_list(tree, parent);
   quadtree_insert_lines(tree->quad1, quad1);
   quadtree_insert_lines(tree->quad2, quad2);

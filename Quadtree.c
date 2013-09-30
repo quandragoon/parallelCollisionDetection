@@ -21,6 +21,7 @@ struct quad_tree {
   struct quad_tree* quad1, quad2, quad3, quad4;
   line_list* lines;
   size_t num_lines; //total lines contained, not the length of 'lines'.
+  double xmin, xmax, ymin, ymax;
 };
 
 typedef struct quad_tree quad_tree;
@@ -35,10 +36,14 @@ line_list *line_list_new() {
   return new_list;
 }
 
-quad_tree *quad_tree_new() {
+quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   quad_tree *const root = (quad_tree *const)malloc(sizeof(quad_tree));
   root->quad1 = root->quad2 = root->quad3 = root->quad4 = NULL;
   root->lines = line_list_new();
+  root->xmin = xmin;
+  root->xmax = xmax;
+  root->ymin = ymin;
+  root->ymax = ymax;
   return root;
 }
 
@@ -54,10 +59,36 @@ void insert_line(line_list* lines, line_node* new_line) {
   lines->tail->next = NULL;
 }
 
+quad_type get_quad_type(quad_tree* tree, line_node* node) {
+  Line line = node->line;
+  Vec p1 = line->p1;
+  Vec p2 = line->p2;
 
+  double xmin = tree->xmin;
+  double xmax = tree->xmax;
+  double ymin = tree->ymin;
+  double ymax = tree->ymax;
+  double xmid = (xmin + xmax) / 2.0;
+  double ymid = (ymin + ymax) / 2.0;
+
+  assert(p1->x > xmin && p1->x < xmax && p1->y > ymin && p1->y < ymax);
+  assert(p2->x > xmin && p2->x < xmax && p2->y > ymin && p2->y < ymax);
+
+  if (!(((p1->x - xmid)*(p2->x - xmid) > 0) && ((p1->y - ymid)*(p2->y - ymid)))) {
+    return MUL;
+  }
+  int xid = (p1->x - xmid > 0) ? 1 : 0;
+  int yid = (p1->y - ymid > 0) ? 1 : 0;
+  int quad = 2 * yid + xid + 1;
+  return (quad_type) quad;
+}
 
 void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
   tree->num_lines = new_lines->num_lines;
+  double xmax = tree->xmax;
+  double xmin = tree->xmin;
+  double ymax = tree->ymax;
+  double ymin = tree->ymin;
 
   if (new_lines->size <= N)
     return;
@@ -92,10 +123,12 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
 	return 0;
     }
   }
-  tree->quad1 = quad_tree_new();
-  tree->quad2 = quad_tree_new();
-  tree->quad3 = quad_tree_new();
-  tree->quad4 = quad_tree_new();
+  double xmid = (xmin + xmax) / 2.0;
+  double ymid = (ymin + ymax) / 2.0;
+  tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
+  tree->quad2 = quad_tree_new(xmid, xmax, ymin, ymid);
+  tree->quad3 = quad_tree_new(xmin, xmid, ymid, ymax);
+  tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax);
   quadtree_insert_line_list(tree, parent);
   quadtree_insert_lines(tree->quad1, quad1);
   quadtree_insert_lines(tree->quad2, quad2);
