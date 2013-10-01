@@ -125,12 +125,12 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
   }
 }
 
-void build_quadtree(CollisionWorld* collision_world) {
+quad_tree*  build_quadtree(CollisionWorld* collision_world) {
   quad_tree* tree = quad_tree_new(BOX_XMIN, BOX_XMAX, BOX_YMIN, BOX_YMAX);
   tree->num_lines = collision_world->numOfLines;
 
   if (tree->num_lines <= N)
-    return;
+    return tree;
 
   line_list* quad1  = line_list_new();
   line_list* quad2  = line_list_new();
@@ -161,7 +161,7 @@ void build_quadtree(CollisionWorld* collision_world) {
 	insert_line(parent, line_node_new(*ptr));
 	break;
       default:
-	return;
+	return NULL;
     }
   }
   double X_MID = (BOX_XMAX + BOX_XMIN) / 2.0;
@@ -175,13 +175,16 @@ void build_quadtree(CollisionWorld* collision_world) {
   quadtree_insert_lines(tree->quad2, quad2);
   quadtree_insert_lines(tree->quad3, quad3);
   quadtree_insert_lines(tree->quad4, quad4);
+
+  return tree;
 }
 
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
-	
+  quad_tree* tree = build_quadtree(collisionWorld);
+  // Now use tree to detect collisions
 }
-/*
-void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
+
+void CollisionWorld_detectIntersection_old(CollisionWorld* collisionWorld) {
   IntersectionEventList intersectionEventList = IntersectionEventList_make();
 
   // Test all line-line pairs to see if they will intersect before the next time step.
@@ -237,7 +240,6 @@ void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
 
   IntersectionEventList_deleteNodes(&intersectionEventList);
 }
-*/
 
 unsigned int CollisionWorld_getNumLineWallCollisions(
     CollisionWorld* collisionWorld) {
