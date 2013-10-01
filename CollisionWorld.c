@@ -137,28 +137,30 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
   line_list* quad3  = line_list_new();
   line_list* quad4  = line_list_new();
   line_list* parent = line_list_new();
+  line_list* all_lines = line_list_new();
 
   int type;
   Line** ptr = collision_world->lines; 
   Line** end = ptr + collision_world->numOfLines;
   for(; ptr < end; ptr++){
     line_node* ptr_node = line_node_new(*ptr);
+    insert_line(all_lines, ptr_node);
     type = get_quad_type(tree, ptr_node);
     switch (type){
       case Q1_TYPE:
-	insert_line(quad1, line_node_new(*ptr));
+	insert_line(quad1, ptr_node);
 	break;
       case Q2_TYPE:
-	insert_line(quad2, line_node_new(*ptr));
+	insert_line(quad2, ptr_node);
 	break;
       case Q3_TYPE:
-	insert_line(quad3, line_node_new(*ptr));
+	insert_line(quad3, ptr_node);
 	break;
       case Q4_TYPE:
-	insert_line(quad4, line_node_new(*ptr));
+	insert_line(quad4, ptr_node);
 	break;
       case MUL_TYPE:
-	insert_line(parent, line_node_new(*ptr));
+	insert_line(parent, ptr_node);
 	break;
       default:
 	return NULL;
@@ -170,6 +172,7 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
   tree->quad2 = quad_tree_new(X_MID, BOX_XMAX, BOX_YMIN, Y_MID);
   tree->quad3 = quad_tree_new(BOX_XMIN, X_MID, Y_MID, BOX_YMAX);
   tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
+  tree->all_lines = all_lines;
   quadtree_insert_line_list(tree, parent);
   quadtree_insert_lines(tree->quad1, quad1);
   quadtree_insert_lines(tree->quad2, quad2);
@@ -179,9 +182,87 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
   return tree;
 }
 
+IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree, CollisionWorld* collisionWorld) {
+  IntersectionEventList intersectionEventList = IntersectionEventList_make();
+  
+  line_node* parent_node = tree->lines->head;
+  line_node* any_node = tree->all_lines->head;
+
+  while (parent_node != NULL) {
+    Line* l1 = &(parent_node->line);
+    while (any_node != NULL) {
+      Line* l2 = &(any_node->line);
+
+      // intersect expects compareLines(l1, l2) < 0 to be true.
+      // Swap l1 and l2, if necessary.
+      if (compareLines(l1, l2) >= 0) {
+        Line *temp = l1;
+        l1 = l2;
+        l2 = temp;
+      }
+
+      IntersectionType intersectionType = intersect(l1, l2,
+                                                    collisionWorld->timeStep);
+      if (intersectionType != NO_INTERSECTION) {
+        IntersectionEventList_appendNode(&intersectionEventList, l1, l2,
+                                         intersectionType);
+        collisionWorld->numLineLineCollisions++;
+      }
+
+      any_node = any_node->next;
+    }
+    parent_node = parent_node->next;
+  }
+  if (tree->quad1 == NULL && tree->quad2 == NULL && tree->quad3 == NULL && tree->quad4 == NULL)
+    return intersectionEventList;
+
+  IntersectionEventList intersectionEventListQuad1 = CollisionWorld_getIntersectionEvents(tree->quad1, collisionWorld);
+  IntersectionEventList intersectionEventListQuad2 = CollisionWorld_getIntersectionEvents(tree->quad2, collisionWorld);
+  IntersectionEventList intersectionEventListQuad3 = CollisionWorld_getIntersectionEvents(tree->quad3, collisionWorld);
+  IntersectionEventList intersectionEventListQuad4 = CollisionWorld_getIntersectionEvents(tree->quad4, collisionWorld);
+
+  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad1);
+  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad2);
+  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad3);
+  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad4);
+
+  return intersectionEventList;
+}
+
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   quad_tree* tree = build_quadtree(collisionWorld);
   // Now use tree to detect collisions
+  // General approach - first compare parent with all_lines
+  // Then recurse on children
+  IntersectionEventList intersectionEventList = CollisionWorld_getIntersectionEvents(tree, collisionWorld);
+
+  // Sort the intersection event list.
+  IntersectionEventNode* startNode = intersectionEventList.head;
+  while (startNode != NULL) {
+    IntersectionEventNode* minNode = startNode;
+    IntersectionEventNode* curNode = startNode->next;
+    while (curNode != NULL) {
+      if (IntersectionEventNode_compareData(curNode, minNode) < 0) {
+        minNode = curNode;
+      }
+      curNode = curNode->next;
+    }
+    if (minNode != startNode) {
+      IntersectionEventNode_swapData(minNode, startNode);
+    }
+    startNode = startNode->next;
+  }
+
+  // Call the collision solver for each intersection event.
+  IntersectionEventNode* curNode = intersectionEventList.head;
+
+  while (curNode != NULL) {
+    CollisionWorld_collisionSolver(collisionWorld, curNode->l1, curNode->l2,
+                                   curNode->intersectionType);
+    curNode = curNode->next;
+  }
+
+  IntersectionEventList_deleteNodes(&intersectionEventList);
 }
 
 void CollisionWorld_detectIntersection_old(CollisionWorld* collisionWorld) {

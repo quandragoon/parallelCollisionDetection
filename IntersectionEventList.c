@@ -90,6 +90,19 @@ void IntersectionEventList_appendNode(
   intersectionEventList->tail = newNode;
 }
 
+void IntersectionEventList_mergeLists(IntersectionEventList* list1, IntersectionEventList* list2) {
+  if (list1->head == NULL) {
+    list1->head = list2->head;
+    list1->tail = list2->tail;
+  } else {
+    list1->tail->next = list2->head;
+    if (list2->tail != NULL)
+      list1->tail = list2->tail;
+  }
+  list2->head = NULL;
+  list2->tail = NULL;
+}
+
 void IntersectionEventList_deleteNodes(
     IntersectionEventList* intersectionEventList) {
   IntersectionEventNode* curNode = intersectionEventList->head;

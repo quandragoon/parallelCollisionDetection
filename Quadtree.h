@@ -34,6 +34,7 @@ typedef struct line_list line_list;
 struct quad_tree {
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
   line_list* lines;
+  line_list* all_lines;
   size_t num_lines; //total lines contained, not the length of 'lines'.
   double xmin, xmax, ymin, ymax;
 };
@@ -51,6 +52,7 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   quad_tree * root = (quad_tree *)malloc(sizeof(quad_tree));
   root->quad1 = root->quad2 = root->quad3 = root->quad4 = NULL;
   root->lines = line_list_new();
+  root->all_lines = line_list_new();
   root->xmin = xmin;
   root->xmax = xmax;
   root->ymin = ymin;
@@ -101,6 +103,7 @@ void quadtree_insert_line_list(quad_tree* tree, line_list* new_line) {
 
 void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
   tree->num_lines = new_lines->num_lines;
+  tree->all_lines = new_lines;
   double xmax = tree->xmax;
   double xmin = tree->xmin;
   double ymax = tree->ymax;
