@@ -138,27 +138,27 @@ void build_quadtree(CollisionWorld* collision_world) {
   line_list* quad4  = line_list_new();
   line_list* parent = line_list_new();
 
-  quad_type t;
-  Line* ptr = collision_world->lines; 
-  Line* end = ptr + collision_world->numOfLines;
+  int type;
+  Line** ptr = collision_world->lines; 
+  Line** end = ptr + collision_world->numOfLines;
   for(; ptr < end; ptr++){
-    line_node* ptr_node = line_node_new(ptr);
-    t = get_quad_type(tree, ptr_node);
-    switch (t){
-      case Q1:
-	insert_line(quad1, line_node_new(ptr));
+    line_node* ptr_node = line_node_new(*ptr);
+    type = get_quad_type(tree, ptr_node);
+    switch (type){
+      case Q1_TYPE:
+	insert_line(quad1, line_node_new(*ptr));
 	break;
-      case Q2:
-	insert_line(quad2, line_node_new(ptr));
+      case Q2_TYPE:
+	insert_line(quad2, line_node_new(*ptr));
 	break;
-      case Q3:
-	insert_line(quad3, line_node_new(ptr));
+      case Q3_TYPE:
+	insert_line(quad3, line_node_new(*ptr));
 	break;
-      case Q4:
-	insert_line(quad4, line_node_new(ptr));
+      case Q4_TYPE:
+	insert_line(quad4, line_node_new(*ptr));
 	break;
-      case MUL:
-	insert_line(parent, line_node_new(ptr));
+      case MUL_TYPE:
+	insert_line(parent, line_node_new(*ptr));
 	break;
       default:
 	return;
