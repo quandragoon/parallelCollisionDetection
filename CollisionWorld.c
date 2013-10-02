@@ -129,15 +129,25 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
   quad_tree* tree = quad_tree_new(BOX_XMIN, BOX_XMAX, BOX_YMIN, BOX_YMAX);
   tree->num_lines = collision_world->numOfLines;
 
-  if (tree->num_lines <= N)
-    return tree;
-
   line_list* quad1  = line_list_new();
   line_list* quad2  = line_list_new();
   line_list* quad3  = line_list_new();
   line_list* quad4  = line_list_new();
   line_list* parent = line_list_new();
   line_list* all_lines = line_list_new();
+
+  if (tree->num_lines <= N) {
+    Line** ptr = collision_world->lines;
+    Line** end = ptr + collision_world->numOfLines;
+    for(; ptr < end; ptr++){
+      line_node* ptr_node = line_node_new(*ptr);
+      insert_line(all_lines, ptr_node);
+      insert_line(parent, ptr_node);
+    }
+    tree->all_lines = all_lines;
+    quadtree_insert_line_list(tree, parent);
+    return tree;
+  }
 
   int type;
   Line** ptr = collision_world->lines; 

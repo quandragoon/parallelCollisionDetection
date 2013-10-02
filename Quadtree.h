@@ -109,8 +109,10 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
   double ymax = tree->ymax;
   double ymin = tree->ymin;
 
-  if (new_lines->num_lines <= N)
+  if (new_lines->num_lines <= N) {
+    quadtree_insert_line_list(tree, new_lines);
     return;
+  }
 
   line_list* quad1  = line_list_new();
   line_list* quad2  = line_list_new();
