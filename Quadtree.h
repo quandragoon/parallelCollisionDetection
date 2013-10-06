@@ -10,7 +10,7 @@
 #define Q3_TYPE 3
 #define Q4_TYPE 4
 
-#define N  40
+#define N  4
 
 struct line_node {
   struct line_node* next;
@@ -53,6 +53,7 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   root->quad1 = root->quad2 = root->quad3 = root->quad4 = NULL;
   root->lines = line_list_new();
   root->quad_lines = line_list_new();
+  root->num_lines = 0;
   root->xmin = xmin;
   root->xmax = xmax;
   root->ymin = ymin;
@@ -111,9 +112,12 @@ int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
   double ymid = (ymin + ymax) / 2.0;
 
 //  if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid) > 0))) {
-  if ((p1.x - xmid)*(p2.x - xmid) <= 0 || ((p1.y - ymid)*(p2.y - ymid) <= 0)) {
+  if ((p1.x - xmid)*(p2.x - xmid) <= 0 || ((p1.y - ymid)*(p2.y - ymid) <= 0)) 
     return MUL_TYPE;
-  }
+
+  if ((p1.x - xmid)*(p2.x - xmid) <= 0) 
+    return MUL_TYPE; 
+
   int xid = (p1.x - xmid > 0) ? 1 : 0;
   int yid = (p1.y - ymid > 0) ? 1 : 0;
   int quad = 2 * yid + xid + 1;

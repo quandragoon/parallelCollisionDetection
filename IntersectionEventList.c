@@ -65,6 +65,7 @@ IntersectionEventList IntersectionEventList_make() {
   IntersectionEventList intersectionEventList;
   intersectionEventList.head = NULL;
   intersectionEventList.tail = NULL;
+  intersectionEventList.numIntersections = 0;
   return intersectionEventList;
 }
 
@@ -88,9 +89,11 @@ void IntersectionEventList_appendNode(
     intersectionEventList->tail->next = newNode;
   }
   intersectionEventList->tail = newNode;
+  intersectionEventList->numIntersections++;
 }
 
 void IntersectionEventList_mergeLists(IntersectionEventList* list1, IntersectionEventList* list2) {
+  if (list2 == NULL) return;
   if (list1->head == NULL) {
     list1->head = list2->head;
     list1->tail = list2->tail;
@@ -101,6 +104,8 @@ void IntersectionEventList_mergeLists(IntersectionEventList* list1, Intersection
   }
   list2->head = NULL;
   list2->tail = NULL;
+  list1->numIntersections += list2->numIntersections;
+  list2->numIntersections = 0;
 }
 
 void IntersectionEventList_deleteNodes(
@@ -114,4 +119,5 @@ void IntersectionEventList_deleteNodes(
   }
   intersectionEventList->head = NULL;
   intersectionEventList->tail = NULL;
+  intersectionEventList->numIntersections--;
 }
