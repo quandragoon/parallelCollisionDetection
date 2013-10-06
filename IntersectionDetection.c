@@ -23,9 +23,32 @@
 #include "./IntersectionDetection.h"
 
 #include <assert.h>
+#include <math.h>
 
 #include "./Line.h"
 #include "./Vec.h"
+
+#define V_THRESHOLD 0.0000005
+
+static inline double max(double x, double y){
+  return x > y ? x : y;
+}
+static inline double min(double x, double y){
+  return x < y ? x : y;
+}
+
+//Quick detect if two lines intersect using rectangles 
+static inline bool rectangles_overlap(Vec p11, Vec p12, Vec p21, Vec p22){
+  int l1_xmax = max(p11.x, p12.x);
+  int l1_xmin = min(p11.x, p12.x);
+  int l1_ymax = max(p11.y, p12.y);
+  int l1_ymin = min(p11.y, p12.y);
+  int l2_xmax = max(p21.x, p22.x);
+  int l2_xmin = min(p21.x, p22.x);
+  int l2_ymax = max(p21.y, p22.y);
+  int l2_ymin = min(p21.y, p22.y);
+  return ((l1_xmax - l2_xmin) <= 0 || (l2_xmax - l1_xmin) <= 0 || (l1_ymax - l2_ymin) <= 0 ||(l2_ymax - l1_ymin) <= 0);
+}
 
 // Detect if lines l1 and l2 will intersect between now and the next time step.
 IntersectionType intersect(Line *l1, Line *l2, double time) {
@@ -40,9 +63,18 @@ IntersectionType intersect(Line *l1, Line *l2, double time) {
   // Get relative velocity.
   velocity = Vec_subtract(l2->velocity, l1->velocity);
 
+
+  if(fabs(velocity.x) < V_THRESHOLD && fabs(velocity.y) < V_THRESHOLD)
+    return NO_INTERSECTION;
+
   // Get the parallelogram.
   p1 = Vec_add(l2->p1, Vec_multiply(velocity, time));
   p2 = Vec_add(l2->p2, Vec_multiply(velocity, time));
+
+  
+  //if (!rectangles_overlap(l1->p1, l1->p2, l2->p1, l2->p2) && !rectangles_overlap(l1->p1, l1->p2, p1, p2))
+//  if (!rectangles_overlap(l1->p1, l1->p2, l2->p1, l2->p2))
+//    return NO_INTERSECTION;
 
   int num_line_intersections = 0;
   bool top_intersected = false;
@@ -113,6 +145,7 @@ bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p4) {
 
 // Check if two lines intersect.
 bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
+
   // Relative orientation
   double d1 = direction(p3, p4, p1);
   double d2 = direction(p3, p4, p2);
