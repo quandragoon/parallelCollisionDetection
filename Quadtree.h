@@ -10,7 +10,7 @@
 #define Q3_TYPE 3
 #define Q4_TYPE 4
 
-#define N 1000
+#define N  50
 
 struct line_node {
   struct line_node* next;
@@ -60,36 +60,55 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   return root;
 }
 
+void line_list_delete(line_list* list){
+  if (list->head == NULL)
+    return;
+  
+  line_node *prev, *cur;
+  prev = cur = list->head;
+  while(cur != NULL){
+    cur = cur->next;
+    free(prev);
+    prev = cur;
+  }
+}
+
 void quad_tree_delete(quad_tree * tree) {
-  // TODO: Add delete code here
+  //Call recursively
+  if (tree->quad1 != NULL)
+    quad_tree_delete(tree->quad1);
+  if (tree->quad2 != NULL)
+    quad_tree_delete(tree->quad2);
+  if (tree->quad3 != NULL)
+    quad_tree_delete(tree->quad3);
+  if (tree->quad4 != NULL)
+    quad_tree_delete(tree->quad4);
+  //line_list_delete(tree->quad_lines);
+  line_list_delete(tree->lines);
+  free(tree->quad_lines);
+  free(tree->lines);
 }
 
 void insert_line(line_list* lines, line_node* new_line) {
+  line_node* node = line_node_new(new_line->line);
   if (lines->head == NULL) {
-    lines->head = new_line;
-    lines->tail = new_line;
+    lines->head = node;
+    lines->tail = node;
   } else {
-    lines->tail->next = new_line;
-    lines->tail = new_line;
+    lines->tail->next = node;
+    lines->tail = node;
   }
   lines->num_lines++;
   lines->tail->next = NULL;
 }
 
-int get_quad_type(quad_tree* tree, line_node* node) {
-  Line* line = node->line;
-  Vec p1 = line->p1;
-  Vec p2 = line->p2;
-
+int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
   double xmin = tree->xmin;
   double xmax = tree->xmax;
   double ymin = tree->ymin;
   double ymax = tree->ymax;
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
-
-  assert(p1.x > xmin && p1.x < xmax && p1.y > ymin && p1.y < ymax);
-  assert(p2.x > xmin && p2.x < xmax && p2.y > ymin && p2.y < ymax);
 
   if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid)))) {
     return MUL_TYPE;
@@ -100,17 +119,47 @@ int get_quad_type(quad_tree* tree, line_node* node) {
   return quad;
 }
 
+bool determine_same_quad(Vec p1, Vec p2, quad_tree* tree, int quad) {
+  int xid = (quad-1) % 2;
+  int yid = (quad-1) / 2;
+  double xmid = (tree->xmin + tree->xmax) / 2.0;
+  double ymid = (tree->ymin + tree->ymax) / 2.0;
+  double xmax = (xid > 0) ? tree->xmax : xmid;
+  double xmin = (xid > 0) ? xmid : tree->xmin;
+  double ymax = (yid > 0) ? tree->ymax : ymid;
+  double ymin = (yid > 0) ? ymid : tree->ymin;
+
+  return ((p1.x < xmax) && (p2.x < xmax) && (p1.y < ymax) && (p2.y < ymax) && (p1.x > xmin) && (p2.x > xmin) && (p1.y > ymin) && (p2.y > ymin));
+}
+
+int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
+  Line* actual_line = node->line;
+  Vec p1 = actual_line->p1;
+  Vec p2 = actual_line->p2;
+
+  Vec new_p1 = Vec_add(p1, Vec_multiply(node->line->velocity, timeStep));
+  Vec new_p2 = Vec_add(p2, Vec_multiply(node->line->velocity, timeStep));
+
+  int first_quad = get_quad_type_line(p1, p2, tree);
+  bool is_same_quad = determine_same_quad(new_p1, new_p2, tree, first_quad);
+
+  if (is_same_quad) return first_quad;
+  return MUL_TYPE;
+}
+
 //insert a line into a quadrant that it belongs to
 void quadtree_insert_line_list(quad_tree* tree, line_list* new_line) {
   tree->lines = new_line;
 }
 
-void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
+void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeStep) {
   tree->num_lines = new_lines->num_lines;
   double xmax = tree->xmax;
   double xmin = tree->xmin;
   double ymax = tree->ymax;
   double ymin = tree->ymin;
+
+  if (new_lines->num_lines == 0) return;
 
   if (new_lines->num_lines <= N) {
     quadtree_insert_line_list(tree, new_lines);
@@ -126,9 +175,9 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
 
   line_node* cur = new_lines->head;
   int type;
-  while (cur->next != NULL){
-    type = get_quad_type(tree, cur);
-    switch (type){
+  while (cur != NULL) {
+    type = get_quad_type(tree, cur, timeStep);
+    switch (type) {
       case Q1_TYPE:
 	insert_line(quad1, cur);
 	break;
@@ -149,7 +198,12 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
     }
     if (type != MUL_TYPE)
       insert_line(quad_lines, cur);
+    cur = cur->next;
   }
+
+  assert(quad_lines->num_lines + parent->num_lines == new_lines->num_lines);
+  assert(new_lines->num_lines == (parent->num_lines + quad1->num_lines + quad2->num_lines + quad3->num_lines + quad4->num_lines));
+  
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
   tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
@@ -158,9 +212,9 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines) {
   tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax);
   tree->quad_lines = quad_lines;
   quadtree_insert_line_list(tree, parent);
-  quadtree_insert_lines(tree->quad1, quad1);
-  quadtree_insert_lines(tree->quad2, quad2);
-  quadtree_insert_lines(tree->quad3, quad3);
-  quadtree_insert_lines(tree->quad4, quad4);
+  quadtree_insert_lines(tree->quad1, quad1, timeStep);
+  quadtree_insert_lines(tree->quad2, quad2, timeStep);
+  quadtree_insert_lines(tree->quad3, quad3, timeStep);
+  quadtree_insert_lines(tree->quad4, quad4, timeStep);
 }
 
