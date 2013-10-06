@@ -187,15 +187,15 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
 
   if (quad1->head){
     tree->quad1 = quad_tree_new(BOX_XMIN, X_MID, BOX_YMIN, Y_MID);
-    quadtree_insert_lines(tree->quad1, quad1, collision_world->timeStep);
+    cilk_spawn quadtree_insert_lines(tree->quad1, quad1, collision_world->timeStep);
   }
   if (quad2->head){ 
     tree->quad2 = quad_tree_new(X_MID, BOX_XMAX, BOX_YMIN, Y_MID);
-    quadtree_insert_lines(tree->quad2, quad2, collision_world->timeStep);
+    cilk_spawn quadtree_insert_lines(tree->quad2, quad2, collision_world->timeStep);
   }
   if (quad3->head){ 
     tree->quad3 = quad_tree_new(BOX_XMIN, X_MID, Y_MID, BOX_YMAX);
-    quadtree_insert_lines(tree->quad3, quad3, collision_world->timeStep);
+    cilk_spawn quadtree_insert_lines(tree->quad3, quad3, collision_world->timeStep);
   }
   if (quad4->head){
     tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
@@ -274,19 +274,19 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree, doub
   IntersectionEventList intersectionEventListQuad3;
   IntersectionEventList intersectionEventListQuad4;
 
-    if (tree->quad1 && tree->quad1->quad_lines->num_lines > 50) {
+    if (tree->quad1 && tree->quad1->quad_lines->num_lines > 3) {
       intersectionEventListQuad1 = cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad1, timeStep);
     } else {
       intersectionEventListQuad1 = CollisionWorld_getIntersectionEvents(tree->quad1, timeStep);
     }
 
-    if (tree->quad2 && tree->quad2->quad_lines->num_lines > 50) {
+    if (tree->quad2 && tree->quad2->quad_lines->num_lines > 3) {
       intersectionEventListQuad2 = cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad2, timeStep);
     } else {
       intersectionEventListQuad2 = CollisionWorld_getIntersectionEvents(tree->quad2, timeStep);
     }
 
-    if (tree->quad3 && tree->quad3->quad_lines->num_lines > 50) {
+    if (tree->quad3 && tree->quad3->quad_lines->num_lines > 3) {
       intersectionEventListQuad3 = cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad3, timeStep);
     } else {
       intersectionEventListQuad3 = CollisionWorld_getIntersectionEvents(tree->quad3, timeStep);
