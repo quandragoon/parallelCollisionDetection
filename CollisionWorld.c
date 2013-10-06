@@ -129,23 +129,22 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
   quad_tree* tree = quad_tree_new(BOX_XMIN, BOX_XMAX, BOX_YMIN, BOX_YMAX);
   tree->num_lines = collision_world->numOfLines;
 
+  if (tree->num_lines <= N) {
+    for (int i = 0; i < collision_world->numOfLines; ++i) {
+      line_node* ptr_node = line_node_new(collision_world->lines[i]);
+      insert_line(tree->lines, ptr_node);
+      //insert_line(quad_lines, ptr_node);
+      //insert_line(parent, ptr_node);
+    }
+    return tree;
+  } 
+
   line_list* quad1  = line_list_new();
   line_list* quad2  = line_list_new();
   line_list* quad3  = line_list_new();
   line_list* quad4  = line_list_new();
   line_list* parent = line_list_new();
   line_list* quad_lines = line_list_new();
-
-  if (tree->num_lines <= N) {
-    for (int i = 0; i < collision_world->numOfLines; ++i) {
-      line_node* ptr_node = line_node_new(collision_world->lines[i]);
-      insert_line(quad_lines, ptr_node);
-      insert_line(parent, ptr_node);
-    }
-    tree->quad_lines = quad_lines;
-    quadtree_insert_line_list(tree, parent);
-    return tree;
-  }
 
   int type;
   for (int i = 0; i < collision_world->numOfLines; ++i) {
@@ -155,15 +154,19 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
     switch (type){
       case Q1_TYPE:
 	insert_line(quad1, ptr_node);
+        insert_line(quad_lines, ptr_node);
 	break;
       case Q2_TYPE:
 	insert_line(quad2, ptr_node);
+        insert_line(quad_lines, ptr_node);
 	break;
       case Q3_TYPE:
 	insert_line(quad3, ptr_node);
+        insert_line(quad_lines, ptr_node);
 	break;
       case Q4_TYPE:
 	insert_line(quad4, ptr_node);
+        insert_line(quad_lines, ptr_node);
 	break;
       case MUL_TYPE:
 	insert_line(parent, ptr_node);
@@ -171,25 +174,31 @@ quad_tree*  build_quadtree(CollisionWorld* collision_world) {
       default:
 	return NULL;
     }
-    if (type != MUL_TYPE)
-      insert_line(quad_lines, ptr_node);
   }
   assert(collision_world->numOfLines == (parent->num_lines + quad1->num_lines + quad2->num_lines + quad3->num_lines + quad4->num_lines));
 
   double X_MID = (BOX_XMAX + BOX_XMIN) / 2.0;
   double Y_MID = (BOX_YMAX + BOX_YMIN) / 2.0;
 
-  tree->quad1 = quad_tree_new(BOX_XMIN, X_MID, BOX_YMIN, Y_MID);
-  tree->quad2 = quad_tree_new(X_MID, BOX_XMAX, BOX_YMIN, Y_MID);
-  tree->quad3 = quad_tree_new(BOX_XMIN, X_MID, Y_MID, BOX_YMAX);
-  tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
   tree->quad_lines = quad_lines;
   quadtree_insert_line_list(tree, parent);
 
-  quadtree_insert_lines(tree->quad1, quad1, collision_world->timeStep);
-  quadtree_insert_lines(tree->quad2, quad2, collision_world->timeStep);
-  quadtree_insert_lines(tree->quad3, quad3, collision_world->timeStep);
-  quadtree_insert_lines(tree->quad4, quad4, collision_world->timeStep);
+  if (quad1->head){
+    tree->quad1 = quad_tree_new(BOX_XMIN, X_MID, BOX_YMIN, Y_MID);
+    quadtree_insert_lines(tree->quad1, quad1, collision_world->timeStep);
+  }
+  if (quad2->head){ 
+    tree->quad2 = quad_tree_new(X_MID, BOX_XMAX, BOX_YMIN, Y_MID);
+    quadtree_insert_lines(tree->quad2, quad2, collision_world->timeStep);
+  }
+  if (quad3->head){ 
+    tree->quad3 = quad_tree_new(BOX_XMIN, X_MID, Y_MID, BOX_YMAX);
+    quadtree_insert_lines(tree->quad3, quad3, collision_world->timeStep);
+  }
+  if (quad4->head){
+    tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
+    quadtree_insert_lines(tree->quad4, quad4, collision_world->timeStep);
+  }
 
   return tree;
 }

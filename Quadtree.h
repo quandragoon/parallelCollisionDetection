@@ -120,8 +120,8 @@ int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
 }
 
 bool determine_same_quad(Vec p1, Vec p2, quad_tree* tree, int quad) {
-  int xid = (quad-1) % 2;
-  int yid = (quad-1) / 2;
+  int xid = (quad-1) & 1;
+  int yid = (quad-1) >> 1;
   double xmid = (tree->xmin + tree->xmax) / 2.0;
   double ymid = (tree->ymin + tree->ymax) / 2.0;
   double xmax = (xid > 0) ? tree->xmax : xmid;
@@ -180,15 +180,19 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
     switch (type) {
       case Q1_TYPE:
 	insert_line(quad1, cur);
+        insert_line(quad_lines, cur);
 	break;
       case Q2_TYPE:
 	insert_line(quad2, cur);
+        insert_line(quad_lines, cur);
 	break;
       case Q3_TYPE:
 	insert_line(quad3, cur);
+        insert_line(quad_lines, cur);
 	break;
       case Q4_TYPE:
 	insert_line(quad4, cur);
+        insert_line(quad_lines, cur);
 	break;
       case MUL_TYPE:
 	insert_line(parent, cur);
@@ -196,8 +200,6 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
       default:
 	return;
     }
-    if (type != MUL_TYPE)
-      insert_line(quad_lines, cur);
     cur = cur->next;
   }
 
@@ -206,15 +208,23 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
   
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
-  tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
-  tree->quad2 = quad_tree_new(xmid, xmax, ymin, ymid);
-  tree->quad3 = quad_tree_new(xmin, xmid, ymid, ymax);
-  tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax);
   tree->quad_lines = quad_lines;
   quadtree_insert_line_list(tree, parent);
-  quadtree_insert_lines(tree->quad1, quad1, timeStep);
-  quadtree_insert_lines(tree->quad2, quad2, timeStep);
-  quadtree_insert_lines(tree->quad3, quad3, timeStep);
-  quadtree_insert_lines(tree->quad4, quad4, timeStep);
+  if (quad1->head){
+    tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
+    quadtree_insert_lines(tree->quad1, quad1, timeStep);
+  }
+  if (quad2->head){
+    tree->quad2 = quad_tree_new(xmid, xmax, ymin, ymid);
+    quadtree_insert_lines(tree->quad2, quad2, timeStep);
+  }
+  if (quad3->head){
+    tree->quad3 = quad_tree_new(xmin, xmid, ymid, ymax);
+    quadtree_insert_lines(tree->quad3, quad3, timeStep);
+  }
+  if (quad4->head){
+    tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax);
+    quadtree_insert_lines(tree->quad4, quad4, timeStep);
+  }
 }
 
