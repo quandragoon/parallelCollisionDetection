@@ -10,7 +10,7 @@
 #define Q3_TYPE 3
 #define Q4_TYPE 4
 
-#define N  50
+#define N  40
 
 struct line_node {
   struct line_node* next;
@@ -110,26 +110,13 @@ int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
 
-  if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid)))) {
+  if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid) > 0))) {
     return MUL_TYPE;
   }
   int xid = (p1.x - xmid > 0) ? 1 : 0;
   int yid = (p1.y - ymid > 0) ? 1 : 0;
   int quad = 2 * yid + xid + 1;
   return quad;
-}
-
-bool determine_same_quad(Vec p1, Vec p2, quad_tree* tree, int quad) {
-  int xid = (quad-1) % 2;
-  int yid = (quad-1) / 2;
-  double xmid = (tree->xmin + tree->xmax) / 2.0;
-  double ymid = (tree->ymin + tree->ymax) / 2.0;
-  double xmax = (xid > 0) ? tree->xmax : xmid;
-  double xmin = (xid > 0) ? xmid : tree->xmin;
-  double ymax = (yid > 0) ? tree->ymax : ymid;
-  double ymin = (yid > 0) ? ymid : tree->ymin;
-
-  return ((p1.x < xmax) && (p2.x < xmax) && (p1.y < ymax) && (p2.y < ymax) && (p1.x > xmin) && (p2.x > xmin) && (p1.y > ymin) && (p2.y > ymin));
 }
 
 int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
@@ -141,9 +128,8 @@ int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
   Vec new_p2 = Vec_add(p2, Vec_multiply(node->line->velocity, timeStep));
 
   int first_quad = get_quad_type_line(p1, p2, tree);
-  bool is_same_quad = determine_same_quad(new_p1, new_p2, tree, first_quad);
-
-  if (is_same_quad) return first_quad;
+  int second_quad = get_quad_type_line(new_p1, new_p2, tree);
+  if (first_quad == second_quad) return first_quad;
   return MUL_TYPE;
 }
 
