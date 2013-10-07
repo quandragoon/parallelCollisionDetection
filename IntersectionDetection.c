@@ -30,32 +30,21 @@
 
 #define V_THRESHOLD 0.000005
 
-static inline double max(double x, double y){
+static inline double max(double x, double y) {
   return x > y ? x : y;
 }
-static inline double min(double x, double y){
+static inline double min(double x, double y) {
   return x < y ? x : y;
 }
 
-static inline double dabs(double a){
+static inline double dabs(double a) {
   if (a < 0)
     return -a;
   return a;
 }
 
-//Quick detect if two lines intersect using rectangles 
-static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22){
-/*
-  int l1_xmax = max(p11.x, p12.x);
-  int l1_xmin = min(p11.x, p12.x);
-  int l1_ymax = max(p11.y, p12.y);
-  int l1_ymin = min(p11.y, p12.y);
-  int l2_xmax = max(p21.x, p22.x);
-  int l2_xmin = min(p21.x, p22.x);
-  int l2_ymax = max(p21.y, p22.y);
-  int l2_ymin = min(p21.y, p22.y);
-  return ((l1_xmax > l2_xmin) && (l2_xmax > l1_xmin) && (l1_ymax > l2_ymin) && (l2_ymax > l1_ymin));
-*/
+// Quick detect if two lines intersect using rectangles
+static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22) {
   return (dabs(p11.x - p21.x) > (dabs(p11.x - p12.x) + dabs(p21.x - p22.x)) && \
           dabs(p11.y - p21.y) > (dabs(p11.y - p12.y) + dabs(p21.y - p22.y)));
 }
@@ -77,10 +66,6 @@ IntersectionType intersect(Line *l1, Line *l2, double time) {
 
   // Get relative velocity.
   velocity = Vec_subtract(l2->velocity, l1->velocity);
-
-
-  //if(dabs(velocity.x) < V_THRESHOLD && dabs(velocity.y) < V_THRESHOLD)
-    //return NO_INTERSECTION;
 
   // Get the parallelogram.
   p1 = Vec_add(l2->p1, Vec_multiply(velocity, time));
@@ -156,8 +141,6 @@ bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p4) {
 
 // Check if two lines intersect.
 bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
-  //if(rectangles_not_overlap(p1, p2, p3, p4))
-    //return false;
   // Relative orientation
   double d1 = direction(p3, p4, p1);
   double d2 = direction(p3, p4, p2);

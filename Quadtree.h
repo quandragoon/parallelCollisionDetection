@@ -1,7 +1,11 @@
+/*
+Copyright (c) 2013, Deepak Narayanan & Quan Ngyugen
+*/
+
+#include <stdlib.h>
+#include "assert.h"
 #include "./Line.h"
 #include "./Vec.h"
-#include "assert.h"
-#include <stdlib.h>
 
 #define MUL_TYPE 0
 #define Q1_TYPE 1
@@ -18,10 +22,10 @@ struct line_node {
 };
 typedef struct line_node line_node;
 
-line_node* line_node_new(Line* line){
+line_node* line_node_new(Line* line) {
   line_node *const new_line = (line_node *const)malloc(sizeof(struct line_node));
   new_line->line = line;
-  return new_line;  
+  return new_line;
 }
 
 struct line_list {
@@ -34,7 +38,7 @@ typedef struct line_list line_list;
 struct quad_tree {
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
   line_list* lines;
-  size_t num_lines; //total lines contained, not the length of 'lines'.
+  size_t num_lines;  // total lines contained, not the length of 'lines'.
   double xmin, xmax, ymin, ymax;
 };
 typedef struct quad_tree quad_tree;
@@ -196,28 +200,28 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
   tree->lines = parent;
-  if (quad1->head){
+  if (quad1->head) {
     tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
   if (quad1->num_lines > 150)
     cilk_spawn quadtree_insert_lines(tree->quad1, quad1, timeStep);
   else
     quadtree_insert_lines(tree->quad1, quad1, timeStep);
   }
-  if (quad2->head){
+  if (quad2->head) {
     tree->quad2 = quad_tree_new(xmid, xmax, ymin, ymid);
   if (quad2->num_lines > 150)
     cilk_spawn quadtree_insert_lines(tree->quad2, quad2, timeStep);
   else
     quadtree_insert_lines(tree->quad2, quad2, timeStep);
   }
-  if (quad3->head){
+  if (quad3->head) {
     tree->quad3 = quad_tree_new(xmin, xmid, ymid, ymax);
     if (quad3->num_lines > 150)
       cilk_spawn quadtree_insert_lines(tree->quad3, quad3, timeStep);
     else
       quadtree_insert_lines(tree->quad3, quad3, timeStep);
   }
-  if (quad4->head){
+  if (quad4->head) {
     tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax);
     quadtree_insert_lines(tree->quad4, quad4, timeStep);
   }

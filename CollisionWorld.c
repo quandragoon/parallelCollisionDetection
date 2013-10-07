@@ -136,13 +136,13 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   // lines is less than N
   if (tree->num_lines <= N) {
     Line **ptr = collision_world->lines;
-    Line **end = ptr + collision_world->numOfLines; 
+    Line **end = ptr + collision_world->numOfLines;
     for (; ptr < end; ptr++) {
       line_node* ptr_node = line_node_new(*ptr);
       insert_line(tree->lines, ptr_node);
     }
     return tree;
-  } 
+  }
 
   // quad1, quad2, quad3, quad4 store all line segments that can be completely
   // inserted into smaller quad_trees contained in the given quad_tree.
@@ -159,28 +159,28 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   // which sub-quad_tree a line segment can be inserted into, if any exists.
   int type;
   Line **ptr = collision_world->lines;
-  Line **end = ptr + collision_world->numOfLines; 
+  Line **end = ptr + collision_world->numOfLines;
   for (; ptr < end; ptr++) {
     line_node* ptr_node = line_node_new(*ptr);
     type = get_quad_type(tree, ptr_node, collision_world->timeStep);
-    switch (type){
+    switch (type) {
       case Q1_TYPE:
-	insert_line(quad1, ptr_node);
-	break;
+        insert_line(quad1, ptr_node);
+        break;
       case Q2_TYPE:
-	insert_line(quad2, ptr_node);
-	break;
+        insert_line(quad2, ptr_node);
+        break;
       case Q3_TYPE:
-	insert_line(quad3, ptr_node);
-	break;
+        insert_line(quad3, ptr_node);
+        break;
       case Q4_TYPE:
-	insert_line(quad4, ptr_node);
-	break;
+        insert_line(quad4, ptr_node);
+        break;
       case MUL_TYPE:
-	insert_line(lines, ptr_node);
-	break;
+        insert_line(lines, ptr_node);
+        break;
       default:
-	return NULL;
+        return NULL;
     }
   }
   assert(collision_world->numOfLines == \
@@ -193,19 +193,19 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
 
   tree->lines = lines;
 
-  if (quad1->head){
+  if (quad1->head) {
     tree->quad1 = quad_tree_new(BOX_XMIN, X_MID, BOX_YMIN, Y_MID);
     cilk_spawn quadtree_insert_lines(tree->quad1, quad1, collision_world->timeStep);
   }
-  if (quad2->head){ 
+  if (quad2->head) {
     tree->quad2 = quad_tree_new(X_MID, BOX_XMAX, BOX_YMIN, Y_MID);
     cilk_spawn quadtree_insert_lines(tree->quad2, quad2, collision_world->timeStep);
   }
-  if (quad3->head){ 
+  if (quad3->head) {
     tree->quad3 = quad_tree_new(BOX_XMIN, X_MID, Y_MID, BOX_YMAX);
     cilk_spawn quadtree_insert_lines(tree->quad3, quad3, collision_world->timeStep);
   }
-  if (quad4->head){
+  if (quad4->head) {
     tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
     quadtree_insert_lines(tree->quad4, quad4, collision_world->timeStep);
   }
@@ -291,24 +291,36 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree,
   // For very small quad_trees we do not pay the overhead of spawning
   // new threads
   if (tree->num_lines > 20) {
-    intersectionEventListQuad1 = cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
-    intersectionEventListQuad2 = cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad2, timeStep, tree->lines);
-    intersectionEventListQuad3 = cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad3, timeStep, tree->lines);
-    intersectionEventListQuad4 = CollisionWorld_getIntersectionEvents(tree->quad4, timeStep, tree->lines);
+    intersectionEventListQuad1 = \
+      cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
+    intersectionEventListQuad2 = \
+      cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad2, timeStep, tree->lines);
+    intersectionEventListQuad3 = \
+      cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad3, timeStep, tree->lines);
+    intersectionEventListQuad4 = \
+      CollisionWorld_getIntersectionEvents(tree->quad4, timeStep, tree->lines);
     cilk_sync;
   } else {
-    intersectionEventListQuad1 = CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
-    intersectionEventListQuad2 = CollisionWorld_getIntersectionEvents(tree->quad2, timeStep, tree->lines);
-    intersectionEventListQuad3 = CollisionWorld_getIntersectionEvents(tree->quad3, timeStep, tree->lines);
-    intersectionEventListQuad4 = CollisionWorld_getIntersectionEvents(tree->quad4, timeStep, tree->lines);
+    intersectionEventListQuad1 = \
+      CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
+    intersectionEventListQuad2 = \
+      CollisionWorld_getIntersectionEvents(tree->quad2, timeStep, tree->lines);
+    intersectionEventListQuad3 = \
+      CollisionWorld_getIntersectionEvents(tree->quad3, timeStep, tree->lines);
+    intersectionEventListQuad4 = \
+      CollisionWorld_getIntersectionEvents(tree->quad4, timeStep, tree->lines);
   }
 
   // Merge the intersections obtained in sub-quad_trees so that we
   // now have one unified list.
-  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad1);
-  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad2);
-  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad3);
-  IntersectionEventList_mergeLists(&intersectionEventList, &intersectionEventListQuad4);
+  IntersectionEventList_mergeLists(&intersectionEventList,
+    &intersectionEventListQuad1);
+  IntersectionEventList_mergeLists(&intersectionEventList,
+    &intersectionEventListQuad2);
+  IntersectionEventList_mergeLists(&intersectionEventList,
+    &intersectionEventListQuad3);
+  IntersectionEventList_mergeLists(&intersectionEventList,
+    &intersectionEventListQuad4);
 
   return intersectionEventList;
 }
