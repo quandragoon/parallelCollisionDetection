@@ -56,7 +56,9 @@ typedef struct IntersectionEventList IntersectionEventList;
 // Returns an empty list.
 IntersectionEventList IntersectionEventList_make();
 
-void IntersectionEventList_mergeLists(IntersectionEventList* list1, IntersectionEventList* list2);
+// Merges the two lists into list1, and clears the fields in list2
+void IntersectionEventList_mergeLists(
+    IntersectionEventList* list1, IntersectionEventList* list2);
 
 // Appends a new node to the list with the data (l1, l2, intersectionType).
 // Precondition: compareLines(l1, l2) < 0 must be true.

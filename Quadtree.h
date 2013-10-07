@@ -1,4 +1,3 @@
-//#include "./Quadtree.h"
 #include "./Line.h"
 #include "./Vec.h"
 #include "assert.h"
@@ -12,6 +11,7 @@
 
 #define N 20
 
+// Definition of a line node, which is fundamental unit of our linked list
 struct line_node {
   struct line_node* next;
   Line* line;
@@ -86,6 +86,8 @@ void quad_tree_delete(quad_tree * tree) {
   free(tree->lines);
 }
 
+// Inserts a new line into the given linked list, making sure that
+// the input line is not modified by this operation in any way
 void insert_line(line_list* lines, line_node* new_line) {
   line_node* node = line_node_new(new_line->line);
   if (lines->head == NULL) {
@@ -99,6 +101,7 @@ void insert_line(line_list* lines, line_node* new_line) {
   lines->tail->next = NULL;
 }
 
+// Merges the two lists, does not modify list2
 void merge_lists(line_list* list1, line_list* list2) {
   if (list2 == NULL) return;
   if (list1->head == NULL) {
@@ -121,7 +124,6 @@ int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
   double ymid = (ymin + ymax) / 2.0;
 
   if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid) > 0))) 
-  //if ((p1.x - xmid)*(p2.x - xmid) <= 0 || ((p1.y - ymid)*(p2.y - ymid) <= 0)) 
     return MUL_TYPE;
 
   int xid = (p1.x - xmid > 0) ? 1 : 0;
@@ -149,8 +151,6 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
   double xmin = tree->xmin;
   double ymax = tree->ymax;
   double ymin = tree->ymin;
-
-  //if (new_lines->num_lines == 0) return;
 
   if (new_lines->num_lines <= N) {
     tree->lines = new_lines;
@@ -189,7 +189,9 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
     cur = cur->next;
   }
 
-  assert(new_lines->num_lines == (parent->num_lines + quad1->num_lines + quad2->num_lines + quad3->num_lines + quad4->num_lines));
+  assert(new_lines->num_lines == \
+    (parent->num_lines + quad1->num_lines + quad2->num_lines \
+      + quad3->num_lines + quad4->num_lines));
   
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
