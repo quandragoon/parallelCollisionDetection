@@ -37,8 +37,15 @@ static inline double min(double x, double y){
   return x < y ? x : y;
 }
 
+static inline double dabs(double a){
+  if (a < 0)
+    return -a;
+  return a;
+}
+
 //Quick detect if two lines intersect using rectangles 
 static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22){
+/*
   int l1_xmax = max(p11.x, p12.x);
   int l1_xmin = min(p11.x, p12.x);
   int l1_ymax = max(p11.y, p12.y);
@@ -48,17 +55,19 @@ static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22){
   int l2_ymax = max(p21.y, p22.y);
   int l2_ymin = min(p21.y, p22.y);
   return ((l1_xmax > l2_xmin) && (l2_xmax > l1_xmin) && (l1_ymax > l2_ymin) && (l2_ymax > l1_ymin));
+*/
+  return (dabs(p11.x - p21.x) > (dabs(p11.x - p12.x) + dabs(p21.x - p22.x)) && \
+          dabs(p11.y - p21.y) > (dabs(p11.y - p12.y) + dabs(p21.y - p22.y)));
 }
 
-static inline double dabs(double a){
-  if (a < 0)
-    return -a;
-  return a;
-}
+
 
 // Detect if lines l1 and l2 will intersect between now and the next time step.
 IntersectionType intersect(Line *l1, Line *l2, double time) {
   assert(compareLines(l1, l2) < 0);
+
+  if (rectangles_not_overlap(l1->p1, l1->p2, l2->p1, l2->p2))
+    return NO_INTERSECTION;
 
   Vec velocity;
   Vec p1;
@@ -77,10 +86,6 @@ IntersectionType intersect(Line *l1, Line *l2, double time) {
   p1 = Vec_add(l2->p1, Vec_multiply(velocity, time));
   p2 = Vec_add(l2->p2, Vec_multiply(velocity, time));
 
-  
-  //if (rectangles_not_overlap(l1->p1, l1->p2, l2->p1, l2->p2) && rectangles_not_overlap(l1->p1, l1->p2, p1, p2))
-  //if (rectangles_not_overlap(l1->p1, l1->p2, p1, p2))
-    //return NO_INTERSECTION;
 
   int num_line_intersections = 0;
   bool top_intersected = false;
@@ -151,8 +156,8 @@ bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p4) {
 
 // Check if two lines intersect.
 bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
-  if(rectangles_not_overlap(p1, p2, p3, p4))
-    return false;
+  //if(rectangles_not_overlap(p1, p2, p3, p4))
+    //return false;
   // Relative orientation
   double d1 = direction(p3, p4, p1);
   double d2 = direction(p3, p4, p2);

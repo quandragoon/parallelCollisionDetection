@@ -10,7 +10,7 @@
 #define Q3_TYPE 3
 #define Q4_TYPE 4
 
-#define N 30
+#define N 20
 
 struct line_node {
   struct line_node* next;
@@ -34,7 +34,6 @@ typedef struct line_list line_list;
 struct quad_tree {
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
   line_list* lines;
-  line_list* quad_lines;
   size_t num_lines; //total lines contained, not the length of 'lines'.
   double xmin, xmax, ymin, ymax;
 };
@@ -52,7 +51,6 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   quad_tree * root = (quad_tree *)malloc(sizeof(quad_tree));
   root->quad1 = root->quad2 = root->quad3 = root->quad4 = NULL;
   root->lines = line_list_new();
-  root->quad_lines = line_list_new();
   root->num_lines = 0;
   root->xmin = xmin;
   root->xmax = xmax;
@@ -84,9 +82,7 @@ void quad_tree_delete(quad_tree * tree) {
     quad_tree_delete(tree->quad3);
   if (tree->quad4 != NULL)
     quad_tree_delete(tree->quad4);
-  //line_list_delete(tree->quad_lines);
   line_list_delete(tree->lines);
-  free(tree->quad_lines);
   free(tree->lines);
 }
 
@@ -101,6 +97,19 @@ void insert_line(line_list* lines, line_node* new_line) {
   }
   lines->num_lines++;
   lines->tail->next = NULL;
+}
+
+void merge_lists(line_list* list1, line_list* list2) {
+  if (list2 == NULL) return;
+  if (list1->head == NULL) {
+    list1->head = list2->head;
+    list1->tail = list2->tail;
+  } else {
+    list1->tail->next = list2->head;
+    if (list2->tail != NULL)
+      list1->tail = list2->tail;
+  }
+  list1->num_lines += list2->num_lines;
 }
 
 int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
@@ -134,11 +143,6 @@ int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
   return (first_quad == second_quad) ? first_quad : MUL_TYPE;
 }
 
-//insert a line into a quadrant that it belongs to
-void quadtree_insert_line_list(quad_tree* tree, line_list* new_line) {
-  tree->lines = new_line;
-}
-
 void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeStep) {
   tree->num_lines = new_lines->num_lines;
   double xmax = tree->xmax;
@@ -149,7 +153,7 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
   //if (new_lines->num_lines == 0) return;
 
   if (new_lines->num_lines <= N) {
-    quadtree_insert_line_list(tree, new_lines);
+    tree->lines = new_lines;
     return;
   }
 
@@ -158,7 +162,6 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
   line_list* quad3  = line_list_new();
   line_list* quad4  = line_list_new();
   line_list* parent = line_list_new();
-  line_list* quad_lines = line_list_new();
 
   line_node* cur = new_lines->head;
   int type;
@@ -167,19 +170,15 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
     switch (type) {
       case Q1_TYPE:
 	insert_line(quad1, cur);
-        insert_line(quad_lines, cur);
 	break;
       case Q2_TYPE:
 	insert_line(quad2, cur);
-        insert_line(quad_lines, cur);
 	break;
       case Q3_TYPE:
 	insert_line(quad3, cur);
-        insert_line(quad_lines, cur);
 	break;
       case Q4_TYPE:
 	insert_line(quad4, cur);
-        insert_line(quad_lines, cur);
 	break;
       case MUL_TYPE:
 	insert_line(parent, cur);
@@ -190,30 +189,28 @@ void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeSte
     cur = cur->next;
   }
 
-  assert(quad_lines->num_lines + parent->num_lines == new_lines->num_lines);
   assert(new_lines->num_lines == (parent->num_lines + quad1->num_lines + quad2->num_lines + quad3->num_lines + quad4->num_lines));
   
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
-  tree->quad_lines = quad_lines;
-  quadtree_insert_line_list(tree, parent);
+  tree->lines = parent;
   if (quad1->head){
     tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
-  if (quad1->num_lines > 20)
+  if (quad1->num_lines > 150)
     cilk_spawn quadtree_insert_lines(tree->quad1, quad1, timeStep);
   else
     quadtree_insert_lines(tree->quad1, quad1, timeStep);
   }
   if (quad2->head){
     tree->quad2 = quad_tree_new(xmid, xmax, ymin, ymid);
-  if (quad2->num_lines > 20)
+  if (quad2->num_lines > 150)
     cilk_spawn quadtree_insert_lines(tree->quad2, quad2, timeStep);
   else
     quadtree_insert_lines(tree->quad2, quad2, timeStep);
   }
   if (quad3->head){
     tree->quad3 = quad_tree_new(xmin, xmid, ymid, ymax);
-    if (quad3->num_lines > 20)
+    if (quad3->num_lines > 150)
       cilk_spawn quadtree_insert_lines(tree->quad3, quad3, timeStep);
     else
       quadtree_insert_lines(tree->quad3, quad3, timeStep);
