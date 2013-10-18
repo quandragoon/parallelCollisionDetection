@@ -34,6 +34,8 @@
 #include "./Line.h"
 #include "./Quadtree.h"
 
+#define INTERSECT_COARSE_LIM 20
+
 CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
   assert(capacity > 0);
 
@@ -288,9 +290,7 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree,
   // is a variable that is only being read by multiple threads
   merge_lists(tree->lines, upstream_lines);
 
-  // For very small quad_trees we do not pay the overhead of spawning
-  // new threads
-  if (tree->num_lines > 20) {
+  if (tree->num_lines > INTERSECT_COARSE_LIM) {
     intersectionEventListQuad1 = \
       cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
     intersectionEventListQuad2 = \
@@ -300,7 +300,10 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree,
     intersectionEventListQuad4 = \
       CollisionWorld_getIntersectionEvents(tree->quad4, timeStep, tree->lines);
     cilk_sync;
-  } else {
+  }
+  // For very small quad_trees we do not pay the overhead of spawning
+  // new threads
+  else {
     intersectionEventListQuad1 = \
       CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
     intersectionEventListQuad2 = \

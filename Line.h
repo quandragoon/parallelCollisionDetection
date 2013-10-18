@@ -54,6 +54,8 @@ struct Line {
   Vec p1;  // One endpoint of the line.
   Vec p2;  // The other endpoint of the line.
 
+  vec_dimension *max_x, *min_x, *max_y, *min_y;
+
   double length; // Length of the line
 
   // The line's current velocity, in units of pixels per time step.

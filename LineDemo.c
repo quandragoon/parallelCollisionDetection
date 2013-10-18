@@ -75,6 +75,24 @@ void LineDemo_createLines(LineDemo* lineDemo) {
     windowToBox(&line->p1.x, &line->p1.y, px1, py1);
     windowToBox(&line->p2.x, &line->p2.y, px2, py2);
 
+    if (line->p1.x > line->p2.x){
+      line->max_x = &(line->p1.x);
+      line->min_x = &(line->p2.x);
+    }
+    else{
+      line->max_x = &(line->p2.x);
+      line->min_x = &(line->p1.x);
+    }
+    
+    if (line->p1.y > line->p2.y){
+      line->max_y = &(line->p1.y);
+      line->min_y = &(line->p2.y);
+    }
+    else{
+      line->max_y = &(line->p2.y);
+      line->min_y = &(line->p1.y);
+    }
+
     // convert window velocity to box velocity
     velocityWindowToBox(&line->velocity.x, &line->velocity.y, vx, vy);
 

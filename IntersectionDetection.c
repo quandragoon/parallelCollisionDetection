@@ -28,7 +28,7 @@
 #include "./Line.h"
 #include "./Vec.h"
 
-#define V_THRESHOLD 0.000005
+#define THRESHOLD 0.001
 
 static inline double max(double x, double y) {
   return x > y ? x : y;
@@ -44,18 +44,28 @@ static inline double dabs(double a) {
 }
 
 // Quick detect if two lines intersect using rectangles
+/*
 static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22) {
   return (dabs(p11.x - p21.x) > (dabs(p11.x - p12.x) + dabs(p21.x - p22.x)) && \
           dabs(p11.y - p21.y) > (dabs(p11.y - p12.y) + dabs(p21.y - p22.y)));
 }
+*/
 
+static inline bool rectangles_overlap(Line* l1, Line* l2) {
+  return (*l1->min_x < *l2->max_x + THRESHOLD) && (*l1->max_x + THRESHOLD > *l2->min_x) && (*l1->min_y < *l2->max_y + THRESHOLD) && (*l1->max_y + THRESHOLD > *l2->min_y);
+}
 
 
 // Detect if lines l1 and l2 will intersect between now and the next time step.
 IntersectionType intersect(Line *l1, Line *l2, double time) {
   assert(compareLines(l1, l2) < 0);
 
+  /*
   if (rectangles_not_overlap(l1->p1, l1->p2, l2->p1, l2->p2))
+    return NO_INTERSECTION;
+    */
+
+  if (!rectangles_overlap(l1, l2))
     return NO_INTERSECTION;
 
   Vec velocity;
