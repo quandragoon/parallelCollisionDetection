@@ -39,7 +39,12 @@ struct Vec {
 typedef struct Vec Vec;
 
 // Returns a vector with the specified x and y coordinates.
-Vec Vec_make(const vec_dimension x, const vec_dimension y);
+static inline Vec Vec_make(const vec_dimension x, const vec_dimension y){
+  Vec vector;
+  vector.x = x;
+  vector.y = y;
+  return vector;
+}
 
 // Returns a vector parallel to the provided Line.  The direction of the
 // vector is unspecified.
@@ -68,10 +73,26 @@ vec_dimension Vec_component(Vec vector1, Vec vector2);
 Vec Vec_projectOnto(Vec vector1, Vec vector2);
 
 bool Vec_equals(Vec lhs, Vec rhs);
-Vec Vec_add(Vec lhs, Vec rhs);
-Vec Vec_subtract(Vec lhs, Vec rhs);
-Vec Vec_multiply(Vec vector, const double scalar);
-Vec Vec_divide(Vec vector, const double scalar);
+
+//Vec Vec_add(Vec lhs, Vec rhs);
+static inline Vec Vec_add(Vec lhs, Vec rhs) {
+  return Vec_make(lhs.x + rhs.x, lhs.y + rhs.y);
+}
+
+//Vec Vec_subtract(Vec lhs, Vec rhs);
+static inline Vec Vec_subtract(Vec lhs, Vec rhs) {
+  return Vec_make(lhs.x - rhs.x, lhs.y - rhs.y);
+}
+
+//Vec Vec_multiply(Vec vector, const double scalar);
+static inline Vec Vec_multiply(Vec vector, const double scalar) {
+  return Vec_make(vector.x * scalar, vector.y * scalar);
+}
+
+//Vec Vec_divide(Vec vector, const double scalar);
+static inline Vec Vec_divide(Vec vector, const double scalar) {
+  return Vec_make(vector.x / scalar, vector.y / scalar);
+}
 
 // Computes the dot product of two vectors.
 vec_dimension Vec_dotProduct(Vec lhs, Vec rhs);
