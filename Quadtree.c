@@ -12,7 +12,6 @@ line_node* line_node_new(Line* line) {
   return new_line;
 }
 
-
 quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   quad_tree * root = (quad_tree *)malloc(sizeof(quad_tree));
   root->quad1 = root->quad2 = root->quad3 = root->quad4 = NULL;
@@ -25,19 +24,6 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   return root;
 }
 
-/*void line_list_delete(line_list* list){
-  if (list->head == NULL)
-    return;
-
-  line_node *prev, *cur;
-  prev = cur = list->head;
-  while(cur != NULL){
-    cur = cur->next;
-    free(prev);
-    prev = cur;
-  }
-}*/
-
 /*void quad_tree_delete(quad_tree * tree) {
   //Call recursively
   if (tree->quad1 != NULL)
@@ -48,7 +34,6 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
     quad_tree_delete(tree->quad3);
   if (tree->quad4 != NULL)
     quad_tree_delete(tree->quad4);
-  line_list_delete(tree->lines);
   free(tree->lines);
 }*/
 
