@@ -189,11 +189,9 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   // Iterate through all line segments contained in the current quad_tree, and determine
   // which sub-quad_tree a line segment can be inserted into, if any exists.
   int type;
-  Line **ptr = collision_world->lines;
-  Line **end = ptr + collision_world->numOfLines;
-  for (; ptr < end; ptr++) {
-    update_box(*ptr, collision_world->timeStep);
-    line_node* ptr_node = line_node_new(*ptr);
+  for (int i = 0; i < collision_world->numOfLines; i++) {
+    update_box(collision_world->lines[i], collision_world->timeStep);
+    line_node* ptr_node = collision_world->line_nodes[i];
     type = get_quad_type(tree, ptr_node, collision_world->timeStep);
     switch (type) {
       case Q1_TYPE:
