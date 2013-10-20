@@ -54,7 +54,8 @@ struct Line {
   Vec p1;  // One endpoint of the line.
   Vec p2;  // The other endpoint of the line.
 
-  vec_dimension *max_x, *min_x, *max_y, *min_y;
+  bool max_x_is_p1, max_y_is_p1;
+  double u_x, l_x, u_y, l_y;
 
   double length; // Length of the line
 

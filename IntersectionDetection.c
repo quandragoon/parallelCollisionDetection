@@ -51,10 +51,15 @@ static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22) {
 }
 */
 
+/*
 static inline bool rectangles_overlap(Line* l1, Line* l2) {
   return (*l1->min_x < *l2->max_x + THRESHOLD) && (*l1->max_x + THRESHOLD > *l2->min_x) && (*l1->min_y < *l2->max_y + THRESHOLD) && (*l1->max_y + THRESHOLD > *l2->min_y);
 }
+*/
 
+static inline bool rectangles_overlap(Line* l1, Line* l2) {
+  return (l1->l_x < l2->u_x) && (l1->u_x > l2->l_x) && (l1->l_y < l2->u_y) && (l1->u_y > l2->l_y);
+}
 
 // Detect if lines l1 and l2 will intersect between now and the next time step.
 IntersectionType intersect(Line *l1, Line *l2, double time) {

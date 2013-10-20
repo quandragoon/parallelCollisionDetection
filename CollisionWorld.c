@@ -128,6 +128,32 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
   }
 }
 
+
+void update_box(Line* line, double timeStep){
+	Vec p1 = line->p1;
+	Vec p2 = line->p2;
+	Vec new_p1 = Vec_add(p1, Vec_multiply(line->velocity, timeStep));
+	Vec new_p2 = Vec_add(p2, Vec_multiply(line->velocity, timeStep));
+
+	if (line->max_x_is_p1){
+		line->u_x = (p1.x > new_p1.x) ? p1.x : new_p1.x;
+		line->l_x = (p2.x < new_p2.x) ? p2.x : new_p2.x;
+	}
+	else {
+		line->u_x = (p2.x > new_p2.x) ? p2.x : new_p2.x;
+		line->l_x = (p1.x < new_p1.x) ? p1.x : new_p1.x;
+	}
+
+	if (line->max_y_is_p1){
+		line->u_y = (p1.y > new_p1.y) ? p1.y : new_p1.y;
+		line->l_y = (p2.y < new_p2.y) ? p2.y : new_p2.y;
+	}
+	else {
+		line->u_y = (p2.y > new_p2.y) ? p2.y : new_p2.y;
+		line->l_y = (p1.y < new_p1.y) ? p1.y : new_p1.y;
+	}	
+}
+
 // Puts all points in the given collision_world into a quad_tree and
 // returns the quad_tree.
 quad_tree* build_quadtree(CollisionWorld* collision_world) {
@@ -163,6 +189,7 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   Line **ptr = collision_world->lines;
   Line **end = ptr + collision_world->numOfLines;
   for (; ptr < end; ptr++) {
+    update_box(*ptr, collision_world->timeStep);
     line_node* ptr_node = line_node_new(*ptr);
     type = get_quad_type(tree, ptr_node, collision_world->timeStep);
     switch (type) {
