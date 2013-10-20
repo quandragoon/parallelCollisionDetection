@@ -44,31 +44,14 @@ static inline double dabs(double a) {
 }
 
 // Quick detect if two lines intersect using rectangles
-/*
-static inline bool rectangles_not_overlap(Vec p11, Vec p12, Vec p21, Vec p22) {
-  return (dabs(p11.x - p21.x) > (dabs(p11.x - p12.x) + dabs(p21.x - p22.x)) && \
-          dabs(p11.y - p21.y) > (dabs(p11.y - p12.y) + dabs(p21.y - p22.y)));
-}
-*/
-
-/*
 static inline bool rectangles_overlap(Line* l1, Line* l2) {
-  return (*l1->min_x < *l2->max_x + THRESHOLD) && (*l1->max_x + THRESHOLD > *l2->min_x) && (*l1->min_y < *l2->max_y + THRESHOLD) && (*l1->max_y + THRESHOLD > *l2->min_y);
-}
-*/
-
-static inline bool rectangles_overlap(Line* l1, Line* l2) {
-  return (l1->l_x < l2->u_x) && (l1->u_x > l2->l_x) && (l1->l_y < l2->u_y) && (l1->u_y > l2->l_y);
+  return (l1->l_x <= l2->u_x) && (l1->u_x >= l2->l_x) && (l1->l_y <= l2->u_y) && (l1->u_y >= l2->l_y);
 }
 
 // Detect if lines l1 and l2 will intersect between now and the next time step.
 IntersectionType intersect(Line *l1, Line *l2, double time) {
   assert(compareLines(l1, l2) < 0);
 
-  /*
-  if (rectangles_not_overlap(l1->p1, l1->p2, l2->p1, l2->p2))
-    return NO_INTERSECTION;
-    */
 
   if (!rectangles_overlap(l1, l2))
     return NO_INTERSECTION;
@@ -83,8 +66,9 @@ IntersectionType intersect(Line *l1, Line *l2, double time) {
   velocity = Vec_subtract(l2->velocity, l1->velocity);
 
   // Get the parallelogram.
-  p1 = Vec_add(l2->p1, Vec_multiply(velocity, time));
-  p2 = Vec_add(l2->p2, Vec_multiply(velocity, time));
+  Vec disp = Vec_multiply(velocity, time);
+  p1 = Vec_add(l2->p1, disp);
+  p2 = Vec_add(l2->p2, disp);
 
 
   int num_line_intersections = 0;

@@ -25,6 +25,7 @@
 #define VEC_H_
 
 #include <stdbool.h>
+#include <math.h>
 
 typedef double vec_dimension;
 
@@ -51,7 +52,10 @@ static inline Vec Vec_make(const vec_dimension x, const vec_dimension y){
 Vec Vec_makeFromLine(struct Line line);
 
 // Returns the magnitude of the vector.
-vec_dimension Vec_length(Vec vector);
+//vec_dimension Vec_length(Vec vector);
+static inline vec_dimension Vec_length(Vec vector) {
+  return hypot(vector.x, vector.y);
+}
 
 // Returns the argument of the vector - that is, the angle it makes with the
 // positive x axis.  Units are radians.

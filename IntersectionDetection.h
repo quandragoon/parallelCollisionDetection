@@ -80,46 +80,16 @@ static inline bool onSegment(Vec pi, Vec pj, Vec pk) {
   return false;
 }
 
+static inline bool which_side(Vec E, Vec F, Vec P) {
+	return (F.x - E.x) * (P.y - F.y) - (F.y - E.y) * (P.x - F.x) >= 0;
+}
+
 // Check if two lines intersect.
 //bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4);
 // Check if two lines intersect.
 static inline bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
-  // Relative orientation
-  double d1 = direction(p3, p4, p1);
-  if (d1 == 0) return onSegment(p3, p4, p1);
-  double d2 = direction(p3, p4, p2);
-  if (d2 == 0) return onSegment(p3, p4, p1);
-  if ((d1 < 0 && d2 < 0) || (d1 > 0 && d2 > 0)) return false;
-  double d3 = direction(p1, p2, p3);
-  if (d3 == 0) return onSegment(p1, p2, p3);
-  double d4 = direction(p1, p2, p4);
-  if (d4 == 0) return onSegment(p1, p2, p4);
-  if ((d3 < 0 && d4 < 0) || (d3 > 0 && d4 > 0)) return false;
-
-  return true;
-
-  /*
-  // If (p1, p2) and (p3, p4) straddle each other, the line segments must intersect.
-  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0))
-      && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
-    return true;
-  }
-  if (d1 == 0 && onSegment(p3, p4, p1)) {
-    return true;
-  }
-  if (d2 == 0 && onSegment(p3, p4, p2)) {
-    return true;
-  }
-  if (d3 == 0 && onSegment(p1, p2, p3)) {
-    return true;
-  }
-  if (d4 == 0 && onSegment(p1, p2, p4)) {
-    return true;
-  }
-  return false;
-  */
+	return which_side(p1, p2, p3) != which_side(p1, p2, p4) && which_side(p3, p4, p1) != which_side(p3, p4, p2);
 }
-
 
 // Obtain the intersection point for two intersecting line segments.
 Vec getIntersectionPoint(Vec p1, Vec p2, Vec p3, Vec p4);

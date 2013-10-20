@@ -33,9 +33,6 @@ Vec Vec_makeFromLine(struct Line line) {
 
 // ************************* Fundamental attributes **************************
 
-vec_dimension Vec_length(Vec vector) {
-  return hypot(vector.x, vector.y);
-}
 
 double Vec_argument(Vec vector) {
   return atan2(vector.y, vector.x);
