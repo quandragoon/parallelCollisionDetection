@@ -133,28 +133,26 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
 
 
 void update_box(Line* line, double timeStep){
-	Vec p1 = line->p1;
-	Vec p2 = line->p2;
-	Vec new_p1 = Vec_add(p1, Vec_multiply(line->velocity, timeStep));
-	Vec new_p2 = Vec_add(p2, Vec_multiply(line->velocity, timeStep));
+  Vec p1 = line->p1;
+  Vec p2 = line->p2;
+  Vec new_p1 = Vec_add(p1, Vec_multiply(line->velocity, timeStep));
+  Vec new_p2 = Vec_add(p2, Vec_multiply(line->velocity, timeStep));
 
-	if (line->max_x_is_p1){
-		line->u_x = (p1.x > new_p1.x) ? p1.x : new_p1.x;
-		line->l_x = (p2.x < new_p2.x) ? p2.x : new_p2.x;
-	}
-	else {
-		line->u_x = (p2.x > new_p2.x) ? p2.x : new_p2.x;
-		line->l_x = (p1.x < new_p1.x) ? p1.x : new_p1.x;
-	}
+  if (line->max_x_is_p1){
+    line->u_x = (p1.x > new_p1.x) ? p1.x : new_p1.x;
+    line->l_x = (p2.x < new_p2.x) ? p2.x : new_p2.x;
+  } else {
+    line->u_x = (p2.x > new_p2.x) ? p2.x : new_p2.x;
+    line->l_x = (p1.x < new_p1.x) ? p1.x : new_p1.x;
+  }
 
-	if (line->max_y_is_p1){
-		line->u_y = (p1.y > new_p1.y) ? p1.y : new_p1.y;
-		line->l_y = (p2.y < new_p2.y) ? p2.y : new_p2.y;
-	}
-	else {
-		line->u_y = (p2.y > new_p2.y) ? p2.y : new_p2.y;
-		line->l_y = (p1.y < new_p1.y) ? p1.y : new_p1.y;
-	}	
+  if (line->max_y_is_p1){
+    line->u_y = (p1.y > new_p1.y) ? p1.y : new_p1.y;
+    line->l_y = (p2.y < new_p2.y) ? p2.y : new_p2.y;
+  } else {
+    line->u_y = (p2.y > new_p2.y) ? p2.y : new_p2.y;
+    line->l_y = (p1.y < new_p1.y) ? p1.y : new_p1.y;
+  }	
 }
 
 // Puts all points in the given collision_world into a quad_tree and
@@ -167,8 +165,7 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   // lines is less than N
   if (tree->num_lines <= N) {
     for (int i = 0; i < collision_world->numOfLines; ++i) {
-      line_node* ptr_node = collision_world->line_nodes[i];
-      insert_line(tree->lines, ptr_node);
+      insert_line(&tree->lines, collision_world->line_nodes[i]);
     }
     return tree;
   }
@@ -178,12 +175,8 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   //
   // lines contains all line segments that cannot be completely inserted into
   // a single sub-quad_tree of the given quad_tree.
-  // line_list* quad1  = line_list_new();
-  // line_list* quad2  = line_list_new();
-  // line_list* quad3  = line_list_new();
-  // line_list* quad4  = line_list_new();
-  // line_list* lines  = line_list_new();
-  line_node* quad1, quad2, quad3, quad4, lines;
+  line_node *quad1, *quad2, *quad3, *quad4, *lines;
+  quad1 = quad2 = quad3 = quad4 = lines = NULL;
   int num_quad1, num_quad2, num_quad3, num_quad4;
   num_quad1 = num_quad2 = num_quad3 = num_quad4 = 0;
 
@@ -196,23 +189,23 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
     type = get_quad_type(tree, ptr_node, collision_world->timeStep);
     switch (type) {
       case Q1_TYPE:
-        insert_line(quad1, ptr_node);
+        insert_line(&quad1, ptr_node);
         num_quad1++;
         break;
       case Q2_TYPE:
-        insert_line(quad2, ptr_node);
+        insert_line(&quad2, ptr_node);
         num_quad2++;
         break;
       case Q3_TYPE:
-        insert_line(quad3, ptr_node);
+        insert_line(&quad3, ptr_node);
         num_quad3++;
         break;
       case Q4_TYPE:
-        insert_line(quad4, ptr_node);
+        insert_line(&quad4, ptr_node);
         num_quad4++;
         break;
       case MUL_TYPE:
-        insert_line(lines, ptr_node);
+        insert_line(&lines, ptr_node);
         break;
       default:
         return NULL;
@@ -318,7 +311,7 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree,
   // This does not lead to data races since no element of upstream_lines
   // is modified by the functions that use tree->lines, and tree->lines
   // is a variable that is only being read by multiple threads
-  merge_lists(tree->lines, upstream_lines);
+  merge_lists(&tree->lines, upstream_lines);
 
   if (tree->num_lines > INTERSECT_COARSE_LIM) {
     intersectionEventListQuad1 = \

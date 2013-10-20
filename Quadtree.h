@@ -45,14 +45,14 @@ typedef struct quad_tree quad_tree;
 line_list *line_list_new();
 quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax);
 
-void line_list_delete(line_list* list);
-void quad_tree_delete(quad_tree * tree);
+// void line_list_delete(line_list* list);
+// void quad_tree_delete(quad_tree * tree);
 
 // Inserts a new line into the given linked list, making sure that
 // the input line is not modified by this operation in any way
-void insert_line(line_node* lines, line_node* new_line);
+void insert_line(line_node** lines, line_node* new_line);
 // Merges the two lists, does not modify list2
-void merge_lists(line_node* list1, line_node* list2);
+void merge_lists(line_node** list1, line_node* list2);
 
 int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree);
 int get_quad_type(quad_tree* tree, line_node* node, double timeStep);

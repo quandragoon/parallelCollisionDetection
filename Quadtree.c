@@ -1,6 +1,8 @@
 #include "./Quadtree.h"
 #include "./Line.h"
 #include "./Vec.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "assert.h"
 
@@ -30,7 +32,7 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   return root;
 }
 
-void line_list_delete(line_list* list){
+/*void line_list_delete(line_list* list){
   if (list->head == NULL)
     return;
 
@@ -41,9 +43,9 @@ void line_list_delete(line_list* list){
     free(prev);
     prev = cur;
   }
-}
+}*/
 
-void quad_tree_delete(quad_tree * tree) {
+/*void quad_tree_delete(quad_tree * tree) {
   //Call recursively
   if (tree->quad1 != NULL)
     quad_tree_delete(tree->quad1);
@@ -55,33 +57,34 @@ void quad_tree_delete(quad_tree * tree) {
     quad_tree_delete(tree->quad4);
   line_list_delete(tree->lines);
   free(tree->lines);
-}
+}*/
 
 // Inserts a new line into the given linked list, making sure that
 // the input line is not modified by this operation in any way
-void insert_line(line_node* lines, line_node* new_line) {
-  if (lines == NULL) {
-    lines = new_line;
-    lines->next = NULL;
+void insert_line(line_node** lines, line_node* new_line) {
+  if (*lines == NULL) {
+    new_line->next = NULL;
+    *lines = new_line;
   } else {
-    new_line->next = lines;
-    lines = new_line;
+    new_line->next = *lines;
+    *lines = new_line;
   }
 }
 
 // Merges the two lists, does not modify list2
-void merge_lists(line_node* list1, line_node* list2) {
+void merge_lists(line_node** list1, line_node* list2) {
   if (list2 == NULL) return;
-  if (list1 == NULL) {
-    list1 = list2;
+  if (*list1 == NULL) {
+    *list1 = list2;
   } else {
-    list_node* node = list1;
-    list_node* prev;
+    line_node* node = *list1;
+    line_node* prev = NULL;
     while (node != NULL) {
       prev = node;
       node = node->next;
     }
-    prev->next = list2;
+    if (prev != NULL)
+      prev->next = list2;
   }
 }
 
@@ -116,7 +119,7 @@ int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
 }
 
 void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeStep, int num_lines) {
-  tree->num_lines = new_lines->num_lines;
+  tree->num_lines = num_lines;
   double xmax = tree->xmax;
   double xmin = tree->xmin;
   double ymax = tree->ymax;
@@ -127,14 +130,10 @@ void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeSte
     return;
   }
 
-  // line_list* quad1  = line_list_new();
-  // line_list* quad2  = line_list_new();
-  // line_list* quad3  = line_list_new();
-  // line_list* quad4  = line_list_new();
-  // line_list* parent = line_list_new();
-  line_node* quad1, quad2, quad3, quad4, lines;
-  int num_quad1, num_quad2, num_quad3, num_quad4;
-  num_quad1 = num_quad2 = num_quad3 = num_quad4 = 0;
+  line_node *quad1, *quad2, *quad3, *quad4, *lines;
+  quad1 = quad2 = quad3 = quad4 = lines = NULL;
+  int num_quad1, num_quad2, num_quad3, num_quad4, num_parent_lines;
+  num_quad1 = num_quad2 = num_quad3 = num_quad4 = num_lines = 0;
 
   line_node* cur = new_lines;
   line_node* next;
@@ -144,33 +143,30 @@ void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeSte
     next = cur->next;
     switch (type) {
       case Q1_TYPE:
-        insert_line(quad1, cur);
+        insert_line(&quad1, cur);
         num_quad1++;
         break;
       case Q2_TYPE:
-        insert_line(quad2, cur);
+        insert_line(&quad2, cur);
         num_quad2++;
         break;
       case Q3_TYPE:
-        insert_line(quad3, cur);
+        insert_line(&quad3, cur);
         num_quad3++;
         break;
       case Q4_TYPE:
-        insert_line(quad4, cur);
+        insert_line(&quad4, cur);
         num_quad4++;
         break;
       case MUL_TYPE:
-        insert_line(lines, cur);
+        insert_line(&lines, cur);
+        num_parent_lines++;
         break;
       default:
         return;
     }
     cur = next;
   }
-
-  // assert(new_lines->num_lines == \
-  //   (parent->num_lines + quad1->num_lines + quad2->num_lines \
-  //    + quad3->num_lines + quad4->num_lines));
 
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
@@ -211,7 +207,7 @@ void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeSte
     quadtree_insert_lines(tree->quad3, quad3, timeStep, num_quad3);
   }
   if (quad4) {
-    tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax, num_quad4);
-    quadtree_insert_lines(tree->quad4, quad4, timeStep);
+    tree->quad4 = quad_tree_new(xmid, xmax, ymid, ymax);
+    quadtree_insert_lines(tree->quad4, quad4, timeStep, num_quad4);
   }
 }
