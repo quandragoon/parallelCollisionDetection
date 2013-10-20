@@ -48,6 +48,7 @@ CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
   collisionWorld->numLineLineCollisions = 0;
   collisionWorld->timeStep = 0.5;
   collisionWorld->lines = malloc(capacity * sizeof(Line*));
+  collisionWorld->line_nodes = malloc(capacity * sizeof(line_node*));
   collisionWorld->numOfLines = 0;
   return collisionWorld;
 }
@@ -57,6 +58,7 @@ void CollisionWorld_delete(CollisionWorld* collisionWorld) {
     free(collisionWorld->lines[i]);
   }
   free(collisionWorld->lines);
+  free(collisionWorld->line_nodes);
   free(collisionWorld);
 }
 
@@ -66,6 +68,7 @@ unsigned int CollisionWorld_getNumOfLines(CollisionWorld* collisionWorld) {
 
 void CollisionWorld_addLine(CollisionWorld* collisionWorld, Line *line) {
   collisionWorld->lines[collisionWorld->numOfLines] = line;
+  collisionWorld->line_nodes[collisionWorld->numOfLines] = line_node_new(line);
   collisionWorld->numOfLines++;
 }
 
@@ -160,10 +163,8 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
   // Iterate through all line segments contained in the current quad_tree, and determine
   // which sub-quad_tree a line segment can be inserted into, if any exists.
   int type;
-  Line **ptr = collision_world->lines;
-  Line **end = ptr + collision_world->numOfLines;
-  for (; ptr < end; ptr++) {
-    line_node* ptr_node = line_node_new(*ptr);
+  for (int i = 0; i < collision_world->numOfLines; ++i) {
+    line_node* ptr_node = collision_world->line_nodes[i];
     type = get_quad_type(tree, ptr_node, collision_world->timeStep);
     switch (type) {
       case Q1_TYPE:
