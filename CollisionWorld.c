@@ -48,6 +48,7 @@ CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
   collisionWorld->numLineLineCollisions = 0;
   collisionWorld->timeStep = 0.5;
   collisionWorld->lines = malloc(capacity * sizeof(Line*));
+  collisionWorld->line_nodes = malloc(capacity * sizeof(line_node*));
   collisionWorld->numOfLines = 0;
   return collisionWorld;
 }
@@ -57,6 +58,7 @@ void CollisionWorld_delete(CollisionWorld* collisionWorld) {
     free(collisionWorld->lines[i]);
   }
   free(collisionWorld->lines);
+  free(collisionWorld->line_nodes);
   free(collisionWorld);
 }
 
@@ -66,6 +68,7 @@ unsigned int CollisionWorld_getNumOfLines(CollisionWorld* collisionWorld) {
 
 void CollisionWorld_addLine(CollisionWorld* collisionWorld, Line *line) {
   collisionWorld->lines[collisionWorld->numOfLines] = line;
+  collisionWorld->line_nodes[collisionWorld->numOfLines] = line_node_new(line);
   collisionWorld->numOfLines++;
 }
 
