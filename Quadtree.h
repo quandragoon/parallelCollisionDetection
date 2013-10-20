@@ -27,13 +27,6 @@ typedef struct line_node line_node;
 
 line_node* line_node_new(Line* line);
 
-struct line_list {
-  size_t num_lines;
-  struct line_node* head;
-  struct line_node* tail;
-};
-typedef struct line_list line_list;
-
 struct quad_tree {
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
   line_node* lines;
@@ -42,10 +35,8 @@ struct quad_tree {
 };
 typedef struct quad_tree quad_tree;
 
-line_list *line_list_new();
 quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax);
 
-// void line_list_delete(line_list* list);
 // void quad_tree_delete(quad_tree * tree);
 
 // Inserts a new line into the given linked list, making sure that
