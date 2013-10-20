@@ -57,8 +57,6 @@ struct Line {
   bool max_x_is_p1, max_y_is_p1;
   double u_x, l_x, u_y, l_y;
 
-  double length; // Length of the line
-
   // The line's current velocity, in units of pixels per time step.
   Vec velocity;
 
@@ -80,6 +78,30 @@ static inline int compareLines(Line *line1, Line *line2) {
   } else {
     return 1;
   }
+}
+
+static inline void update_box(Line* line, double timeStep){
+  Vec p1 = line->p1;
+  Vec p2 = line->p2;
+  Vec displacement = Vec_multiply(line->velocity, timeStep);
+  Vec new_p1 = Vec_add(p1, displacement);
+  Vec new_p2 = Vec_add(p2, displacement);
+
+  if (line->max_x_is_p1){
+    line->u_x = (p1.x > new_p1.x) ? p1.x : new_p1.x;
+    line->l_x = (p2.x < new_p2.x) ? p2.x : new_p2.x;
+  } else {
+    line->u_x = (p2.x > new_p2.x) ? p2.x : new_p2.x;
+    line->l_x = (p1.x < new_p1.x) ? p1.x : new_p1.x;
+  }
+
+  if (line->max_y_is_p1){
+    line->u_y = (p1.y > new_p1.y) ? p1.y : new_p1.y;
+    line->l_y = (p2.y < new_p2.y) ? p2.y : new_p2.y;
+  } else {
+    line->u_y = (p2.y > new_p2.y) ? p2.y : new_p2.y;
+    line->l_y = (p1.y < new_p1.y) ? p1.y : new_p1.y;
+  }	
 }
 
 // Convert graphical window coordinates to box coordinates.

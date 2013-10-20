@@ -15,7 +15,7 @@ Copyright (c) 2013, Deepak Narayanan & Quan Ngyugen
 #define Q3_TYPE 3
 #define Q4_TYPE 4
 
-#define N 60
+#define N 62
 #define INSERT_COARSE_LIM 120
 
 // Definition of a line node, which is fundamental unit of our linked list
@@ -27,12 +27,6 @@ typedef struct line_node line_node;
 
 line_node* line_node_new(Line* line);
 
-struct line_list {
-  size_t num_lines;
-  struct line_node* head;
-  struct line_node* tail;
-};
-typedef struct line_list line_list;
 
 struct quad_tree {
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
@@ -42,7 +36,6 @@ struct quad_tree {
 };
 typedef struct quad_tree quad_tree;
 
-line_list *line_list_new();
 quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax);
 
 // void line_list_delete(line_list* list);

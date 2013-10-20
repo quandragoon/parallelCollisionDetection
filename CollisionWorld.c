@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <cilk/cilk.h>
+#include <cilk/reducer_opadd.h>
 
 #include "./IntersectionDetection.h"
 #include "./IntersectionEventList.h"
@@ -35,6 +36,7 @@
 #include "./Quadtree.h"
 
 #define INTERSECT_COARSE_LIM 20
+
 
 CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
   assert(capacity > 0);
@@ -86,74 +88,40 @@ void CollisionWorld_updateLines(CollisionWorld* collisionWorld) {
   CollisionWorld_lineWallCollision(collisionWorld);
 }
 
+/*
+void CollisionWorld_updateLines(CollisionWorld* collisionWorld) {
+  CollisionWorld_detectIntersection(collisionWorld);
+  //CollisionWorld_updatePosition(collisionWorld);
+  double t = collisionWorld->timeStep;
+  CILK_C_REDUCER_OPADD(acc, int, 0);
+  CILK_C_REGISTER_REDUCER(acc);
+  for (int i = 0; i < collisionWorld->numOfLines; i++) {
+    Line *line = collisionWorld->lines[i];
+    Vec displacement = Vec_multiply(line->velocity, t);
+    line->p1 = Vec_add(line->p1, displacement);
+    line->p2 = Vec_add(line->p2, displacement);
+    REDUCER_VIEW(acc) += CollisionWorld_lineWallCollision(line);
+  }
+  collisionWorld->numLineWallCollisions += REDUCER_VIEW(acc);
+  CILK_C_UNREGISTER_REDUCER(acc);
+    //CollisionWorld_lineWallCollision(collisionWorld);
+
+}
+*/
 void CollisionWorld_updatePosition(CollisionWorld* collisionWorld) {
   double t = collisionWorld->timeStep;
+  Vec displacement;
   for (int i = 0; i < collisionWorld->numOfLines; i++) {
     Line *line = collisionWorld->lines[i];
-    line->p1 = Vec_add(line->p1, Vec_multiply(line->velocity, t));
-    line->p2 = Vec_add(line->p2, Vec_multiply(line->velocity, t));
-  }
-}
-
-void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
-  for (int i = 0; i < collisionWorld->numOfLines; i++) {
-    Line *line = collisionWorld->lines[i];
-    bool collide = false;
-
-    // Right side
-    if ((line->p1.x > BOX_XMAX || line->p2.x > BOX_XMAX)
-        && (line->velocity.x > 0)) {
-      line->velocity.x = -line->velocity.x;
-      collide = true;
-    }
-    // Left side
-    if ((line->p1.x < BOX_XMIN || line->p2.x < BOX_XMIN)
-        && (line->velocity.x < 0)) {
-      line->velocity.x = -line->velocity.x;
-      collide = true;
-    }
-    // Top side
-    if ((line->p1.y > BOX_YMAX || line->p2.y > BOX_YMAX)
-        && (line->velocity.y > 0)) {
-      line->velocity.y = -line->velocity.y;
-      collide = true;
-    }
-    // Bottom side
-    if ((line->p1.y < BOX_YMIN || line->p2.y < BOX_YMIN)
-        && (line->velocity.y < 0)) {
-      line->velocity.y = -line->velocity.y;
-      collide = true;
-    }
-    // Update total number of collisions.
-    if (collide == true) {
-      collisionWorld->numLineWallCollisions++;
-    }
+    displacement = Vec_multiply(line->velocity, t);
+    line->p1 = Vec_add(line->p1, displacement);
+    line->p2 = Vec_add(line->p2, displacement);
+    //update_box(line, t);
   }
 }
 
 
-void update_box(Line* line, double timeStep){
-  Vec p1 = line->p1;
-  Vec p2 = line->p2;
-  Vec new_p1 = Vec_add(p1, Vec_multiply(line->velocity, timeStep));
-  Vec new_p2 = Vec_add(p2, Vec_multiply(line->velocity, timeStep));
 
-  if (line->max_x_is_p1){
-    line->u_x = (p1.x > new_p1.x) ? p1.x : new_p1.x;
-    line->l_x = (p2.x < new_p2.x) ? p2.x : new_p2.x;
-  } else {
-    line->u_x = (p2.x > new_p2.x) ? p2.x : new_p2.x;
-    line->l_x = (p1.x < new_p1.x) ? p1.x : new_p1.x;
-  }
-
-  if (line->max_y_is_p1){
-    line->u_y = (p1.y > new_p1.y) ? p1.y : new_p1.y;
-    line->l_y = (p2.y < new_p2.y) ? p2.y : new_p2.y;
-  } else {
-    line->u_y = (p2.y > new_p2.y) ? p2.y : new_p2.y;
-    line->l_y = (p1.y < new_p1.y) ? p1.y : new_p1.y;
-  }	
-}
 
 // Puts all points in the given collision_world into a quad_tree and
 // returns the quad_tree.
@@ -452,8 +420,9 @@ void CollisionWorld_collisionSolver(CollisionWorld* collisionWorld, Line *l1,
   double v2Normal = Vec_dotProduct(l2->velocity, normal);
 
   // Compute the mass of each line (we simply use its length).
-  double m1 = l1->length;
-  double m2 = l2->length;
+  double m1 = Vec_length(Vec_subtract(l1->p1, l1->p2)); 
+  double m2 = Vec_length(Vec_subtract(l2->p1, l2->p2)); 
+
 
   // Perform the collision calculation (computes the new velocities along
   // the direction normal to the collision face such that momentum and

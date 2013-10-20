@@ -31,7 +31,6 @@
 struct CollisionWorld {
   // Time step used for simulation
   double timeStep;
-
   // Container that holds all the lines as an array of Line* lines.
   // This CollisionWorld owns the Line* lines.
   Line** lines;
@@ -68,7 +67,42 @@ void CollisionWorld_updateLines(CollisionWorld* collisionWorld);
 void CollisionWorld_updatePosition(CollisionWorld* collisionWorld);
 
 // Handle line-wall collision.
-void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld);
+//void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld);
+static inline void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
+  for (int i = 0; i < collisionWorld->numOfLines; i++) {
+    Line *line = collisionWorld->lines[i];
+    bool collide = false;
+
+    // Right side
+    if ((line->p1.x > BOX_XMAX || line->p2.x > BOX_XMAX)
+        && (line->velocity.x > 0)) {
+      line->velocity.x = -line->velocity.x;
+      collide = true;
+    }
+    // Left side
+    if ((line->p1.x < BOX_XMIN || line->p2.x < BOX_XMIN)
+        && (line->velocity.x < 0)) {
+      line->velocity.x = -line->velocity.x;
+      collide = true;
+    }
+    // Top side
+    if ((line->p1.y > BOX_YMAX || line->p2.y > BOX_YMAX)
+        && (line->velocity.y > 0)) {
+      line->velocity.y = -line->velocity.y;
+      collide = true;
+    }
+    // Bottom side
+    if ((line->p1.y < BOX_YMIN || line->p2.y < BOX_YMIN)
+        && (line->velocity.y < 0)) {
+      line->velocity.y = -line->velocity.y;
+      collide = true;
+    }
+    // Update total number of collisions.
+    if (collide == true) {
+      collisionWorld->numLineWallCollisions++;
+    }
+  }
+}
 
 // Detect line-line intersection.
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld);

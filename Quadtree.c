@@ -12,13 +12,6 @@ line_node* line_node_new(Line* line) {
   return new_line;
 }
 
-line_list *line_list_new() {
-  line_list * new_list = (line_list *)malloc(sizeof(struct line_list));
-  new_list->head = NULL;
-  new_list->tail = NULL;
-  new_list->num_lines = 0;
-  return new_list;
-}
 
 quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   quad_tree * root = (quad_tree *)malloc(sizeof(quad_tree));

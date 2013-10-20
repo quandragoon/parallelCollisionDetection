@@ -58,14 +58,12 @@ static inline double direction(Vec pi, Vec pj, Vec pk) {
 static inline bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p4) {
   double d1 = direction(p1, p2, point);
   double d2 = direction(p3, p4, point);
+  if ((d1 < 0 && d2 < 0) || (d1 > 0 && d2 > 0)) return false;
   double d3 = direction(p1, p3, point);
   double d4 = direction(p2, p4, point);
+  if ((d3 < 0 && d4 < 0) || (d3 > 0 && d4 > 0)) return false;
 
-  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0))
-      && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
-    return true;
-  }
-  return false;
+  return true;
 }
 
 
@@ -88,10 +86,19 @@ static inline bool onSegment(Vec pi, Vec pj, Vec pk) {
 static inline bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
   // Relative orientation
   double d1 = direction(p3, p4, p1);
+  if (d1 == 0) return onSegment(p3, p4, p1);
   double d2 = direction(p3, p4, p2);
+  if (d2 == 0) return onSegment(p3, p4, p1);
+  if ((d1 < 0 && d2 < 0) || (d1 > 0 && d2 > 0)) return false;
   double d3 = direction(p1, p2, p3);
+  if (d3 == 0) return onSegment(p1, p2, p3);
   double d4 = direction(p1, p2, p4);
+  if (d4 == 0) return onSegment(p1, p2, p4);
+  if ((d3 < 0 && d4 < 0) || (d3 > 0 && d4 > 0)) return false;
 
+  return true;
+
+  /*
   // If (p1, p2) and (p3, p4) straddle each other, the line segments must intersect.
   if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0))
       && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
@@ -110,6 +117,7 @@ static inline bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
     return true;
   }
   return false;
+  */
 }
 
 
