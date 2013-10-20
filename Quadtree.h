@@ -36,7 +36,7 @@ typedef struct line_list line_list;
 
 struct quad_tree {
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
-  line_list* lines;
+  line_node* lines;
   size_t num_lines;  // total lines contained, not the length of 'lines'.
   double xmin, xmax, ymin, ymax;
 };
@@ -50,13 +50,13 @@ void quad_tree_delete(quad_tree * tree);
 
 // Inserts a new line into the given linked list, making sure that
 // the input line is not modified by this operation in any way
-void insert_line(line_list* lines, line_node* new_line);
+void insert_line(line_node* lines, line_node* new_line);
 // Merges the two lists, does not modify list2
-void merge_lists(line_list* list1, line_list* list2);
+void merge_lists(line_node* list1, line_node* list2);
 
 int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree);
 int get_quad_type(quad_tree* tree, line_node* node, double timeStep);
 
-void quadtree_insert_lines(quad_tree* tree, line_list* new_lines, double timeStep);
+void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeStep, int num_lines);
 
 #endif
