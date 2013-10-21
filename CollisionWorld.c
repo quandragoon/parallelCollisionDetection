@@ -120,9 +120,6 @@ void CollisionWorld_updatePosition(CollisionWorld* collisionWorld) {
   }
 }
 
-
-
-
 // Puts all points in the given collision_world into a quad_tree and
 // returns the quad_tree.
 quad_tree* build_quadtree(CollisionWorld* collision_world) {
@@ -326,7 +323,7 @@ void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   IntersectionEventList intersectionEventList = \
     CollisionWorld_getIntersectionEvents(tree, collisionWorld->timeStep, NULL);
   collisionWorld->numLineLineCollisions += intersectionEventList.numIntersections;
-  // quad_tree_delete(tree);
+  quad_tree_delete(tree);
   // Sort the intersection event list.
   IntersectionEventNode* startNode = intersectionEventList.head;
   while (startNode != NULL) {

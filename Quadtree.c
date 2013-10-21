@@ -24,7 +24,7 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   return root;
 }
 
-/*void quad_tree_delete(quad_tree * tree) {
+void quad_tree_delete(quad_tree * tree) {
   //Call recursively
   if (tree->quad1 != NULL)
     quad_tree_delete(tree->quad1);
@@ -34,8 +34,8 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
     quad_tree_delete(tree->quad3);
   if (tree->quad4 != NULL)
     quad_tree_delete(tree->quad4);
-  free(tree->lines);
-}*/
+  free(tree);
+}
 
 // Inserts a new line into the given linked list, making sure that
 // the input line is not modified by this operation in any way
