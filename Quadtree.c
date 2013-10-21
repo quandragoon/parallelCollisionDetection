@@ -24,7 +24,7 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
   return root;
 }
 
-/*void quad_tree_delete(quad_tree * tree) {
+void quad_tree_delete(quad_tree * tree) {
   //Call recursively
   if (tree->quad1 != NULL)
     quad_tree_delete(tree->quad1);
@@ -34,8 +34,8 @@ quad_tree *quad_tree_new(double xmin, double xmax, double ymin, double ymax) {
     quad_tree_delete(tree->quad3);
   if (tree->quad4 != NULL)
     quad_tree_delete(tree->quad4);
-  free(tree->lines);
-}*/
+  free(tree);
+}
 
 // Inserts a new line into the given linked list, making sure that
 // the input line is not modified by this operation in any way
@@ -49,7 +49,7 @@ void insert_line(line_node** lines, line_node* new_line) {
   }
 }
 
-// Merges the two lists, does not modify list2
+// Merges the two lists into list1, does not modify list2
 void merge_lists(line_node** list1, line_node* list2) {
   if (list2 == NULL) return;
   if (*list1 == NULL) {
