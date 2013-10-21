@@ -40,7 +40,7 @@ struct Vec {
 typedef struct Vec Vec;
 
 // Returns a vector with the specified x and y coordinates.
-static inline Vec Vec_make(const vec_dimension x, const vec_dimension y){
+static inline Vec Vec_make(const vec_dimension x, const vec_dimension y) {
   Vec vector;
   vector.x = x;
   vector.y = y;
@@ -52,7 +52,6 @@ static inline Vec Vec_make(const vec_dimension x, const vec_dimension y){
 Vec Vec_makeFromLine(struct Line line);
 
 // Returns the magnitude of the vector.
-//vec_dimension Vec_length(Vec vector);
 static inline vec_dimension Vec_length(Vec vector) {
   return hypot(vector.x, vector.y);
 }
@@ -78,22 +77,18 @@ Vec Vec_projectOnto(Vec vector1, Vec vector2);
 
 bool Vec_equals(Vec lhs, Vec rhs);
 
-//Vec Vec_add(Vec lhs, Vec rhs);
 static inline Vec Vec_add(Vec lhs, Vec rhs) {
   return Vec_make(lhs.x + rhs.x, lhs.y + rhs.y);
 }
 
-//Vec Vec_subtract(Vec lhs, Vec rhs);
 static inline Vec Vec_subtract(Vec lhs, Vec rhs) {
   return Vec_make(lhs.x - rhs.x, lhs.y - rhs.y);
 }
 
-//Vec Vec_multiply(Vec vector, const double scalar);
 static inline Vec Vec_multiply(Vec vector, const double scalar) {
   return Vec_make(vector.x * scalar, vector.y * scalar);
 }
 
-//Vec Vec_divide(Vec vector, const double scalar);
 static inline Vec Vec_divide(Vec vector, const double scalar) {
   return Vec_make(vector.x / scalar, vector.y / scalar);
 }

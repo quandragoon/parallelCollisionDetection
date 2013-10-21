@@ -38,22 +38,15 @@ typedef enum {
 IntersectionType intersect(Line *l1, Line *l2, double time);
 
 // Calculate the cross product.
-//double crossProduct(double x1, double y1, double x2, double y2);
-// Calculate the cross product.
 static inline double crossProduct(double x1, double y1, double x2, double y2) {
   return x1 * y2 - x2 * y1;
 }
 
 // Check the direction of two lines (pi, pj) and (pi, pk).
-//double direction(Vec pi, Vec pj, Vec pk);
-// Check the direction of two lines (pi, pj) and (pi, pk).
 static inline double direction(Vec pi, Vec pj, Vec pk) {
   return crossProduct(pk.x - pi.x, pk.y - pi.y, pj.x - pi.x, pj.y - pi.y);
 }
 
-
-// Check if a point is in the parallelogram.
-//bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p4);
 // Check if a point is in the parallelogram.
 static inline bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p4) {
   double d1 = direction(p1, p2, point);
@@ -69,8 +62,6 @@ static inline bool pointInParallelogram(Vec point, Vec p1, Vec p2, Vec p3, Vec p
 
 
 // Check if a point pk is in the line segment (pi, pj).
-//bool onSegment(Vec pi, Vec pj, Vec pk);
-// Check if a point pk is in the line segment (pi, pj).
 // pi, pj, and pk must be collinear.
 static inline bool onSegment(Vec pi, Vec pj, Vec pk) {
   if (((pi.x <= pk.x && pk.x <= pj.x) || (pj.x <= pk.x && pk.x <= pi.x))
@@ -81,14 +72,13 @@ static inline bool onSegment(Vec pi, Vec pj, Vec pk) {
 }
 
 static inline bool which_side(Vec E, Vec F, Vec P) {
-	return (F.x - E.x) * (P.y - F.y) - (F.y - E.y) * (P.x - F.x) >= 0;
+  return (F.x - E.x) * (P.y - F.y) - (F.y - E.y) * (P.x - F.x) >= 0;
 }
 
 // Check if two lines intersect.
-//bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4);
-// Check if two lines intersect.
 static inline bool intersectLines(Vec p1, Vec p2, Vec p3, Vec p4) {
-	return which_side(p1, p2, p3) != which_side(p1, p2, p4) && which_side(p3, p4, p1) != which_side(p3, p4, p2);
+  return which_side(p1, p2, p3) != which_side(p1, p2, p4) && \
+    which_side(p3, p4, p1) != which_side(p3, p4, p2);
 }
 
 // Obtain the intersection point for two intersecting line segments.

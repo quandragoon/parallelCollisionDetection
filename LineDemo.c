@@ -80,9 +80,7 @@ void LineDemo_createLines(LineDemo* lineDemo) {
 
     // convert window velocity to box velocity
     velocityWindowToBox(&line->velocity.x, &line->velocity.y, vx, vy);
-    
     update_box(line, lineDemo->collisionWorld->timeStep);
-
 
     // store color
     line->color = (Color) isGray;

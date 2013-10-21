@@ -67,7 +67,6 @@ void CollisionWorld_updateLines(CollisionWorld* collisionWorld);
 void CollisionWorld_updatePosition(CollisionWorld* collisionWorld);
 
 // Handle line-wall collision.
-//void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld);
 static inline void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
   for (int i = 0; i < collisionWorld->numOfLines; i++) {
     Line *line = collisionWorld->lines[i];
