@@ -88,26 +88,6 @@ void CollisionWorld_updateLines(CollisionWorld* collisionWorld) {
   CollisionWorld_lineWallCollision(collisionWorld);
 }
 
-/*
-void CollisionWorld_updateLines(CollisionWorld* collisionWorld) {
-  CollisionWorld_detectIntersection(collisionWorld);
-  //CollisionWorld_updatePosition(collisionWorld);
-  double t = collisionWorld->timeStep;
-  CILK_C_REDUCER_OPADD(acc, int, 0);
-  CILK_C_REGISTER_REDUCER(acc);
-  for (int i = 0; i < collisionWorld->numOfLines; i++) {
-    Line *line = collisionWorld->lines[i];
-    Vec displacement = Vec_multiply(line->velocity, t);
-    line->p1 = Vec_add(line->p1, displacement);
-    line->p2 = Vec_add(line->p2, displacement);
-    REDUCER_VIEW(acc) += CollisionWorld_lineWallCollision(line);
-  }
-  collisionWorld->numLineWallCollisions += REDUCER_VIEW(acc);
-  CILK_C_UNREGISTER_REDUCER(acc);
-    //CollisionWorld_lineWallCollision(collisionWorld);
-
-}
-*/
 void CollisionWorld_updatePosition(CollisionWorld* collisionWorld) {
   double t = collisionWorld->timeStep;
   Vec displacement;
@@ -116,7 +96,6 @@ void CollisionWorld_updatePosition(CollisionWorld* collisionWorld) {
     displacement = Vec_multiply(line->velocity, t);
     line->p1 = Vec_add(line->p1, displacement);
     line->p2 = Vec_add(line->p2, displacement);
-    //update_box(line, t);
   }
 }
 
@@ -288,10 +267,9 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree,
     intersectionEventListQuad4 = \
       CollisionWorld_getIntersectionEvents(tree->quad4, timeStep, tree->lines);
     cilk_sync;
-  }
-  // For very small quad_trees we do not pay the overhead of spawning
-  // new threads
-  else {
+  } else {
+    // For very small quad_trees we do not pay the overhead of spawning
+    // new threads
     intersectionEventListQuad1 = \
       CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
     intersectionEventListQuad2 = \
@@ -417,9 +395,8 @@ void CollisionWorld_collisionSolver(CollisionWorld* collisionWorld, Line *l1,
   double v2Normal = Vec_dotProduct(l2->velocity, normal);
 
   // Compute the mass of each line (we simply use its length).
-  double m1 = Vec_length(Vec_subtract(l1->p1, l1->p2)); 
-  double m2 = Vec_length(Vec_subtract(l2->p1, l2->p2)); 
-
+  double m1 = Vec_length(Vec_subtract(l1->p1, l1->p2));
+  double m2 = Vec_length(Vec_subtract(l2->p1, l2->p2));
 
   // Perform the collision calculation (computes the new velocities along
   // the direction normal to the collision face such that momentum and

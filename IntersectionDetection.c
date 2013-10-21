@@ -45,7 +45,8 @@ static inline double dabs(double a) {
 
 // Quick detect if two lines intersect using rectangles
 static inline bool rectangles_overlap(Line* l1, Line* l2) {
-  return (l1->l_x <= l2->u_x) && (l1->u_x >= l2->l_x) && (l1->l_y <= l2->u_y) && (l1->u_y >= l2->l_y);
+  return (l1->l_x <= l2->u_x) && (l1->u_x >= l2->l_x) \
+    && (l1->l_y <= l2->u_y) && (l1->u_y >= l2->l_y);
 }
 
 // Detect if lines l1 and l2 will intersect between now and the next time step.
