@@ -47,9 +47,14 @@ typedef struct line_node line_node;
 line_node* line_node_new(Line* line);
 
 struct quad_tree {
+  // quad1 is top left, quad2 is top right, quad3 is bottom left and
+  // quad4 is bottom right.
   struct quad_tree *quad1, *quad2, *quad3, *quad4;
+  // Head of linked list that contains all line segments stored at that level
+  // of the tree
   line_node* lines;
   size_t num_lines;  // total lines contained, not the length of 'lines'.
+  // Coordinates of bounding box of the quadtree
   double xmin, xmax, ymin, ymax;
 };
 typedef struct quad_tree quad_tree;

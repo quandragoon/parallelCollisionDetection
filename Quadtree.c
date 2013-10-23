@@ -59,8 +59,7 @@ void quad_tree_delete(quad_tree * tree) {
   free(tree);
 }
 
-// Inserts a new line into the given linked list, making sure that
-// the input line is not modified by this operation in any way
+// Inserts a new line into the given linked list
 void insert_line(line_node** lines, line_node* new_line) {
   if (*lines == NULL) {
     new_line->next = NULL;
@@ -71,7 +70,8 @@ void insert_line(line_node** lines, line_node* new_line) {
   }
 }
 
-// Merges the two lists into list1, does not modify list2
+// Merges the list1 and list2 into list1, does not modify list2
+// Modifies list1
 void merge_lists(line_node** list1, line_node* list2) {
   if (list2 == NULL) return;
   if (*list1 == NULL) {
@@ -88,6 +88,9 @@ void merge_lists(line_node** list1, line_node* list2) {
   }
 }
 
+// Gets the type of quad that the given line segment can be inserted into
+// If a line cannot be completely inserted into a single quad, a special
+// MUL_TYPE is returned instead.
 int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
   double xmin = tree->xmin;
   double xmax = tree->xmax;
@@ -99,12 +102,16 @@ int get_quad_type_line(Vec p1, Vec p2, quad_tree* tree) {
   if (!(((p1.x - xmid)*(p2.x - xmid) > 0) && ((p1.y - ymid)*(p2.y - ymid) > 0)))
     return MUL_TYPE;
 
+  // Valid quad values are from 1 to 4
   int xid = (p1.x - xmid > 0) ? 1 : 0;
   int yid = (p1.y - ymid > 0) ? 1 : 0;
   int quad = 2 * yid + xid + 1;
   return quad;
 }
 
+// Looks at the current position of the line segment as well as the position
+// of the line segment based on its velocity to determine which quad the
+// line segment should be inserted into
 int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
   Line* actual_line = node->line;
   Vec p1 = actual_line->p1;
@@ -171,28 +178,6 @@ void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeSte
   double xmid = (xmin + xmax) / 2.0;
   double ymid = (ymin + ymax) / 2.0;
   tree->lines = lines;
-  /*
-  if (quad1->head) {
-    tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);
-  if (quad1->num_lines > INSERT_COARSE_LIM)
-    cilk_spawn quadtree_insert_lines(tree->quad1, quad1, timeStep);
-  else
-    quadtree_insert_lines(tree->quad1, quad1, timeStep);
-  }
-  if (quad2->head) {
-    tree->quad2 = quad_tree_new(xmid, xmax, ymin, ymid);
-  if (quad2->num_lines > INSERT_COARSE_LIM)
-    cilk_spawn quadtree_insert_lines(tree->quad2, quad2, timeStep);
-  else
-    quadtree_insert_lines(tree->quad2, quad2, timeStep);
-  }
-  if (quad3->head) {
-    tree->quad3 = quad_tree_new(xmin, xmid, ymid, ymax);
-    if (quad3->num_lines > INSERT_COARSE_LIM)
-      cilk_spawn quadtree_insert_lines(tree->quad3, quad3, timeStep);
-    else
-      quadtree_insert_lines(tree->quad3, quad3, timeStep);
-  }*/
 
   if (quad1) {
     tree->quad1 = quad_tree_new(xmin, xmid, ymin, ymid);

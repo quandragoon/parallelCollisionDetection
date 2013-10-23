@@ -58,6 +58,7 @@ CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
 void CollisionWorld_delete(CollisionWorld* collisionWorld) {
   for (int i = 0; i < collisionWorld->numOfLines; i++) {
     free(collisionWorld->lines[i]);
+    free(collisionWorld->line_nodes[i]);
   }
   free(collisionWorld->lines);
   free(collisionWorld->line_nodes);
@@ -175,6 +176,8 @@ quad_tree* build_quadtree(CollisionWorld* collision_world) {
     cilk_spawn quadtree_insert_lines(tree->quad3, quad3, collision_world->timeStep, num_quad3);
   }
   if (quad4) {
+    // Note: We do not cilk_spawn here since if we cilk_spawn, the current thread
+    // will be wasted waiting for all the other threads to complete
     tree->quad4 = quad_tree_new(X_MID, BOX_XMAX, Y_MID, BOX_YMAX);
     quadtree_insert_lines(tree->quad4, quad4, collision_world->timeStep, num_quad4);
   }
@@ -257,6 +260,7 @@ IntersectionEventList CollisionWorld_getIntersectionEvents(quad_tree* tree,
   // is a variable that is only being read by multiple threads
   merge_lists(&tree->lines, upstream_lines);
 
+  // For large quad_trees we perform the operation of computing intersections in parallel
   if (tree->num_lines > INTERSECT_COARSE_LIM) {
     intersectionEventListQuad1 = \
       cilk_spawn CollisionWorld_getIntersectionEvents(tree->quad1, timeStep, tree->lines);
