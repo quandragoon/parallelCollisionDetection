@@ -30,18 +30,6 @@
 
 #define THRESHOLD 0.001
 
-static inline double max(double x, double y) {
-  return x > y ? x : y;
-}
-static inline double min(double x, double y) {
-  return x < y ? x : y;
-}
-
-static inline double dabs(double a) {
-  if (a < 0)
-    return -a;
-  return a;
-}
 
 // Quick detect if two lines intersect using rectangles
 static inline bool rectangles_overlap(Line* l1, Line* l2) {

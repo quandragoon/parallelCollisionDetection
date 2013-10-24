@@ -71,6 +71,7 @@ static inline bool onSegment(Vec pi, Vec pj, Vec pk) {
   return false;
 }
 
+// Check if a point P is on one side of the line EF or another
 static inline bool which_side(Vec E, Vec F, Vec P) {
   return (F.x - E.x) * (P.y - F.y) - (F.y - E.y) * (P.x - F.x) >= 0;
 }

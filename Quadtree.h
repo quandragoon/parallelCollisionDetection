@@ -28,14 +28,15 @@
 #include "./Line.h"
 #include "./Vec.h"
 
+// MUL_TYPE means the line belongs to multiple children, so it is instead stored in the parent
 #define MUL_TYPE 0
 #define Q1_TYPE 1
 #define Q2_TYPE 2
 #define Q3_TYPE 3
 #define Q4_TYPE 4
 
+// N is the number of lines in a node at which we stop spawning children
 #define N 62
-#define INSERT_COARSE_LIM 120
 
 // Definition of a line node, which is fundamental unit of our linked list
 struct line_node {
@@ -46,6 +47,7 @@ typedef struct line_node line_node;
 
 line_node* line_node_new(Line* line);
 
+// Definition of a node inside a quad tree. Each node contains a list of lines that belong to it.
 struct quad_tree {
   // quad1 is top left, quad2 is top right, quad3 is bottom left and
   // quad4 is bottom right.
@@ -66,6 +68,7 @@ void quad_tree_delete(quad_tree * tree);
 // Inserts a new line into the given linked list, making sure that
 // the input line is not modified by this operation in any way
 void insert_line(line_node** lines, line_node* new_line);
+
 // Merges the two lists, does not modify list2
 void merge_lists(line_node** list1, line_node* list2);
 

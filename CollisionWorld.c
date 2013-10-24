@@ -35,6 +35,7 @@
 #include "./Line.h"
 #include "./Quadtree.h"
 
+// Coarsening for computing intersection in parallel
 #define INTERSECT_COARSE_LIM 20
 
 

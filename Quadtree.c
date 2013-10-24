@@ -125,6 +125,8 @@ int get_quad_type(quad_tree* tree, line_node* node, double timeStep) {
   return (first_quad == second_quad) ? first_quad : MUL_TYPE;
 }
 
+
+// Recursively creates new quadtree nodes and pass the lines down to those node they belong to.
 void quadtree_insert_lines(quad_tree* tree, line_node* new_lines, double timeStep, int num_lines) {
   tree->num_lines = num_lines;
   double xmax = tree->xmax;
