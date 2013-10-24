@@ -58,8 +58,18 @@ CollisionWorld* CollisionWorld_new(const unsigned int capacity) {
 void CollisionWorld_delete(CollisionWorld* collisionWorld) {
   for (int i = 0; i < collisionWorld->numOfLines; i++) {
     free(collisionWorld->lines[i]);
+    free(collisionWorld->line_nodes[i]);
   }
   free(collisionWorld->lines);
+  /*
+  line_node * cur, * prev;
+  cur = *collisionWorld->line_nodes;
+  while (cur->next){
+	  prev = cur;
+	  cur = cur->next;
+	  free(prev);
+  }
+  */
   free(collisionWorld->line_nodes);
   free(collisionWorld);
 }
